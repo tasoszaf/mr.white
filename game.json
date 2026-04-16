@@ -9,10 +9,6 @@
       "role": "πολίτης"
     },
     {
-      "name": "morvolo",
-      "role": "πολίτης"
-    },
-    {
       "name": "riddle",
       "role": "πολίτης"
     }
@@ -21,6 +17,6 @@
     "αυτοκίνητο",
     "μηχανή"
   ],
-  "index": 4,
-  "eliminated": "Hermione"
+  "index": 0,
+  "eliminated": "morvolo"
 }
