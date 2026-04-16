@@ -1,10 +1,6 @@
 {
   "players": [
     {
-      "name": "Ron",
-      "role": "mr_white"
-    },
-    {
       "name": "harry",
       "role": "πολίτης"
     }
@@ -13,6 +9,6 @@
     "αυτοκίνητο",
     "μηχανή"
   ],
-  "index": 2,
-  "eliminated": "riddle"
+  "index": 0,
+  "eliminated": "Ron"
 }
