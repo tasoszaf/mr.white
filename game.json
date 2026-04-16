@@ -7,16 +7,12 @@
     {
       "name": "harry",
       "role": "πολίτης"
-    },
-    {
-      "name": "riddle",
-      "role": "πολίτης"
     }
   ],
   "word": [
     "αυτοκίνητο",
     "μηχανή"
   ],
-  "index": 3,
-  "eliminated": "morvolo"
+  "index": 0,
+  "eliminated": "riddle"
 }
