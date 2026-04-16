@@ -1,5 +1,21 @@
 import streamlit as st
 import random
+import json
+import os
+
+# ================= FILE =================
+
+PLAYERS_FILE = "players.json"
+
+def load_players():
+    if os.path.exists(PLAYERS_FILE):
+        with open(PLAYERS_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+def save_players(players):
+    with open(PLAYERS_FILE, "w") as f:
+        json.dump(players, f)
 
 # ================= WORDS =================
 
@@ -14,7 +30,7 @@ WORDS = [
 # ================= INIT =================
 
 if "players" not in st.session_state:
-    st.session_state.players = []
+    st.session_state.players = load_players()
 
 if "game" not in st.session_state:
     st.session_state.game = None
@@ -62,15 +78,12 @@ def check_winner(players, mr_white_won):
 
     infiltrators = undercovers + mr_whites
 
-    # ⚪ MR WHITE WIN
     if mr_white_won:
         return "MR_WHITE"
 
-    # 🟢 CIVILIANS WIN
     if infiltrators == 0:
         return "CIVILIANS"
 
-    # 🟡 INFILTRATORS WIN
     if civilians == 1 and infiltrators > 0:
         return "INFILTRATORS"
 
@@ -89,6 +102,11 @@ if st.session_state.game is None:
     if st.button("➕ Add"):
         if name and name not in st.session_state.players:
             st.session_state.players.append(name)
+            save_players(st.session_state.players)
+
+    if st.button("🗑 Clear Players"):
+        st.session_state.players = []
+        save_players([])
 
     if st.button("▶ Start Game"):
         if len(st.session_state.players) >= 3:
@@ -123,8 +141,6 @@ else:
 
             st.markdown("### 🎴 CARD")
             st.write(f"👤 {p['name']}")
-
-            # ================= REVEAL =================
 
             if st.session_state.revealed.get(p["name"], False):
 
@@ -218,7 +234,7 @@ else:
 
             st.success(f"🏁 GAME OVER → WINNER: {st.session_state.winner}")
 
-            if st.button("🔁 Restart"):
+            if st.button("🔁 New Game"):
                 st.session_state.clear()
                 st.rerun()
 
