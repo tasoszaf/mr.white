@@ -1,32 +1,56 @@
 import streamlit as st
-import json
 import random
-import os
+import json
+import base64
+import requests
 
-FILE = "game.json"
+# ---------------- CONFIG ----------------
+
+REPO = "tasoszaf/mr.white"  # ⬅️ ΑΛΛΑΞΕ ΤΟ
+
+FILE_PATH = "game.json"
+
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
+
+# ---------------- WORDS ----------------
 
 WORDS = [
     ("σκύλος", "γάτα"),
     ("θάλασσα", "λίμνη"),
     ("αυτοκίνητο", "μηχανή"),
     ("πόλη", "χωριό"),
-    ("ψωμί", "τυρί")
 ]
 
-# ---------------- FILE SYSTEM ----------------
+# ---------------- GITHUB SAVE ----------------
 
-def save_game(data):
-    with open(FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def save_to_github(data):
 
-def load_game():
-    if not os.path.exists(FILE):
-        return None
-    try:
-        with open(FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
-        return None
+    url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
+
+    content = json.dumps(data, ensure_ascii=False, indent=2)
+    encoded = base64.b64encode(content.encode()).decode()
+
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    # get existing file sha (if exists)
+    r = requests.get(url, headers=headers)
+    sha = None
+
+    if r.status_code == 200:
+        sha = r.json().get("sha")
+
+    payload = {
+        "message": "update game state",
+        "content": encoded,
+    }
+
+    if sha:
+        payload["sha"] = sha
+
+    requests.put(url, headers=headers, json=payload)
 
 # ---------------- GAME LOGIC ----------------
 
@@ -41,60 +65,61 @@ def assign_roles(players):
 
     return [{"name": players[i], "role": roles[i]} for i in range(len(players))]
 
-def create_new_game(players):
-    return {
-        "players": assign_roles(players),
-        "word": random.choice(WORDS),
-        "stage": "game",
-        "index": 0,
-        "eliminated": None
-    }
-
-# ---------------- UI INIT ----------------
-
-st.title("🎭 Mr White (JSON STABLE VERSION)")
+# ---------------- INIT ----------------
 
 if "players" not in st.session_state:
     st.session_state.players = []
 
-game = load_game()
+if "game" not in st.session_state:
+    st.session_state.game = None
+
+# ---------------- UI ----------------
+
+st.title("🎭 Mr White (GitHub Version)")
 
 # ---------------- SETUP ----------------
 
-if game is None:
+if st.session_state.game is None:
 
-    st.subheader("Setup")
+    name = st.text_input("👤 Παίκτης")
 
-    name = st.text_input("Όνομα")
-
-    if st.button("➕ Προσθήκη"):
+    if st.button("➕ Add"):
         if name and name not in st.session_state.players:
             st.session_state.players.append(name)
 
     if st.button("▶ Start Game"):
         if len(st.session_state.players) >= 3:
-            game = create_new_game(st.session_state.players)
-            save_game(game)
+
+            game = {
+                "players": assign_roles(st.session_state.players),
+                "word": random.choice(WORDS),
+                "index": 0,
+                "eliminated": None
+            }
+
+            st.session_state.game = game
+            save_to_github(game)
+
             st.rerun()
 
-    st.write("👥 Παίκτες:", st.session_state.players)
+    st.write("👥 Players:", st.session_state.players)
 
 # ---------------- GAME ----------------
 
 else:
 
+    game = st.session_state.game
+
     players = game["players"]
-    word = game["word"]
 
     st.subheader("🎮 Game")
 
-    idx = game["index"]
+    i = game["index"]
 
-    # ---------------- REVEAL ----------------
+    # PLAY LOOP
+    if i < len(players):
 
-    if idx < len(players):
-
-        p = players[idx]
+        p = players[i]
 
         st.write("👉", p["name"])
 
@@ -103,77 +128,51 @@ else:
             if p["role"] == "mr_white":
                 st.error("MR WHITE")
             elif p["role"] == "undercover":
-                st.warning(word[1])
+                st.warning(game["word"][1])
             else:
-                st.success(word[0])
+                st.success(game["word"][0])
 
         if st.button("➡ Next"):
             game["index"] += 1
-            save_game(game)
+            st.session_state.game = game
+            save_to_github(game)
             st.rerun()
 
-    # ---------------- ELIMINATION ----------------
-
+    # ELIMINATION
     else:
 
-        st.subheader("❌ Αποβολή")
+        st.subheader("❌ Elimination")
 
         names = [p["name"] for p in players]
 
-        idx_sel = st.selectbox("Παίκτης", range(len(names)), format_func=lambda i: names[i])
+        idx = st.selectbox("Pick", range(len(names)), format_func=lambda i: names[i])
 
         if st.button("🔥 Confirm"):
 
-            eliminated = names[idx_sel]
+            eliminated = names[idx]
+
+            game["players"] = [p for p in players if p["name"] != eliminated]
+            game["index"] = 0
             game["eliminated"] = eliminated
 
-            # remove player
-            game["players"] = [p for p in players if p["name"] != eliminated]
+            st.session_state.game = game
+            save_to_github(game)
 
-            save_game(game)
             st.rerun()
 
-# ---------------- REVEAL PHASE ----------------
+    # ---------------- RESULT ----------------
 
-if game and game.get("eliminated"):
+    if game.get("eliminated"):
 
-    players = game["players"]
-    word = game["word"]
+        st.error(f"❌ Out: {game['eliminated']}")
 
-    eliminated = game["eliminated"]
+        roles = [p["role"] for p in game["players"]]
 
-    player = next(p for p in players if p["name"] == eliminated)
+        u = roles.count("undercover")
+        c = roles.count("πολίτης")
 
-    st.error(f"❌ Βγήκε: {player['name']}")
-    st.write("🎭 Ρόλος:", player["role"])
+        if u == 1 and c == 1:
+            st.success("🔵 UNDERCOVER WINS")
 
-    # MR WHITE
-    if player["role"] == "mr_white":
-
-        guess = st.text_input("🎯 Μάντεψε λέξη:")
-
-        if st.button("✔ Check"):
-
-            if guess.lower() in [word[0].lower(), word[1].lower()]:
-                st.success("🏆 MR WHITE WINS")
-                os.remove(FILE)
-                st.rerun()
-
-    # WIN CONDITIONS
-    roles = [p["role"] for p in players]
-    u = roles.count("undercover")
-    c = roles.count("πολίτης")
-
-    if u == 1 and c == 1:
-        st.success("🔵 UNDERCOVER WINS")
-        os.remove(FILE)
-
-    elif u == 0:
-        st.success("🟢 CIVILIANS WIN")
-        os.remove(FILE)
-
-    if st.button("➡ Next Round"):
-        game["index"] = 0
-        game["eliminated"] = None
-        save_game(game)
-        st.rerun()
+        elif u == 0:
+            st.success("🟢 CIVILIANS WIN")
