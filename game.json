@@ -1,9 +1,33 @@
 {
-  "players": [],
-  "word": [
-    "αυτοκίνητο",
-    "μηχανή"
+  "players": [
+    {
+      "name": "cxvx",
+      "role": "undercover"
+    },
+    {
+      "name": "khjklh",
+      "role": "πολίτης"
+    },
+    {
+      "name": "khkhk",
+      "role": "πολίτης"
+    },
+    {
+      "name": "hkhkh",
+      "role": "mr_white"
+    },
+    {
+      "name": "khjkhjk",
+      "role": "πολίτης"
+    },
+    {
+      "name": "vzvzv",
+      "role": "πολίτης"
+    }
   ],
-  "index": 0,
-  "eliminated": "harry"
+  "word": [
+    "πόλη",
+    "χωριό"
+  ],
+  "index": 0
 }
