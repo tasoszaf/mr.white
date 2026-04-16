@@ -9,10 +9,6 @@
       "role": "πολίτης"
     },
     {
-      "name": "tom",
-      "role": "undercover"
-    },
-    {
       "name": "Hermione",
       "role": "πολίτης"
     },
@@ -29,6 +25,6 @@
     "αυτοκίνητο",
     "μηχανή"
   ],
-  "index": 6,
-  "eliminated": null
+  "index": 0,
+  "eliminated": "tom"
 }
