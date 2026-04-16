@@ -2,7 +2,7 @@ import streamlit as st
 import random
 
 # -----------------------
-# WORD PAIRS (εσύ τα ορίζεις)
+# WORD PAIRS (βάζεις εσύ)
 # -----------------------
 
 WORDS = [
@@ -26,10 +26,36 @@ def assign_roles(players):
     random.shuffle(players)
     random.shuffle(roles)
 
-    return [
-        {"name": players[i], "role": roles[i]}
-        for i in range(len(players))
-    ]
+    return [{"name": players[i], "role": roles[i]} for i in range(len(players))]
+
+# -----------------------
+# WIN CHECK
+# -----------------------
+
+def check_game_end(players, mr_white_won=False):
+
+    roles = [p["role"] for p in players]
+
+    undercovers = roles.count("undercover")
+    civilians = roles.count("πολίτης")
+
+    # 🏆 MR WHITE WINS
+    if mr_white_won:
+        return "mr_white_win"
+
+    # 🔵 UNDERCOVER WIN (1 undercover + 1 civilian)
+    if undercovers == 1 and civilians == 1:
+        return "undercover_win"
+
+    # 🔵 UNDERCOVER WIN (no civilians left)
+    if undercovers > 0 and civilians == 0:
+        return "undercover_win"
+
+    # 🟢 CIVILIANS WIN (no undercover)
+    if undercovers == 0:
+        return "civilians_win"
+
+    return "continue"
 
 # -----------------------
 # INIT STATE
@@ -38,17 +64,14 @@ def assign_roles(players):
 if "players" not in st.session_state:
     st.session_state.players = []
 
-if "started" not in st.session_state:
-    st.session_state.started = False
-
 if "stage" not in st.session_state:
-    st.session_state.stage = "setup"  # setup → game → reveal → result
-
-if "revealed" not in st.session_state:
-    st.session_state.revealed = False
+    st.session_state.stage = "setup"
 
 if "current" not in st.session_state:
     st.session_state.current = 0
+
+if "revealed" not in st.session_state:
+    st.session_state.revealed = False
 
 # -----------------------
 # UI
@@ -74,21 +97,19 @@ if st.session_state.stage == "setup":
     with col2:
         if st.button("▶ Start Game"):
             if len(st.session_state.players) >= 3:
-
                 st.session_state.game_data = assign_roles(st.session_state.players)
                 st.session_state.word_pair = random.choice(WORDS)
 
                 st.session_state.stage = "game"
                 st.session_state.current = 0
                 st.session_state.revealed = False
-
             else:
                 st.warning("Χρειάζονται τουλάχιστον 3 παίκτες")
 
     st.write("👥 Παίκτες:", st.session_state.players)
 
 # -----------------------
-# GAME PHASE (REVEAL)
+# GAME PHASE
 # -----------------------
 
 elif st.session_state.stage == "game":
@@ -106,7 +127,6 @@ elif st.session_state.stage == "game":
         st.write(f"👉 Δώσε το κινητό σε: **{player['name']}**")
 
         if st.button("👁 Δες ρόλο"):
-
             st.session_state.revealed = True
 
         if st.session_state.revealed:
@@ -124,7 +144,7 @@ elif st.session_state.stage == "game":
 
     else:
 
-        st.success("🎉 Τέλος γύρου συζήτησης!")
+        st.success("🎉 Τέλος γύρου")
 
         eliminated = st.selectbox(
             "❌ Ποιος αποβάλλεται;",
@@ -147,17 +167,25 @@ elif st.session_state.stage == "reveal":
 
     eliminated_name = st.session_state.eliminated
 
-    player = next(p for p in game if p["name"] == eliminated_name)
+    player = next((p for p in game if p["name"] == eliminated_name), None)
+
+    if player is None:
+        st.error("❌ Player not found")
+        st.stop()
 
     st.error(f"❌ Βγήκε: {eliminated_name}")
     st.write(f"🎭 Ρόλος: **{player['role']}**")
 
     # remove player
-    st.session_state.game_data = [
-        p for p in game if p["name"] != eliminated_name
-    ]
+    remaining = [p for p in game if p["name"] != eliminated_name]
+    st.session_state.game_data = remaining
 
-    # MR WHITE GUESS
+    # -----------------------
+    # MR WHITE LOGIC
+    # -----------------------
+
+    mr_white_won = False
+
     if player["role"] == "mr_white":
 
         guess = st.text_input("🎯 Mr White μάντεψε τη λέξη:")
@@ -165,19 +193,33 @@ elif st.session_state.stage == "reveal":
         if st.button("✔ Έλεγχος"):
 
             if guess.lower() in [words[0].lower(), words[1].lower()]:
-                st.success("🎉 Mr White κέρδισε!")
+                st.success("🏆 MR WHITE ΚΕΡΔΙΣΕ!")
+                st.session_state.stage = "setup"
+                st.stop()
             else:
-                st.error("❌ Mr White έχασε!")
+                st.error("❌ Λάθος μαντεψιά")
 
-    if st.button("➡ Επόμενος γύρος"):
+    # -----------------------
+    # GAME END CHECK
+    # -----------------------
 
-        st.session_state.stage = "game"
-        st.session_state.current = 0
-        st.session_state.revealed = False
+    result = check_game_end(remaining, mr_white_won)
 
-        # end condition
-        if len(st.session_state.game_data) <= 2:
-            st.success("🏆 Τέλος παιχνιδιού!")
-            st.session_state.stage = "setup"
-            st.session_state.players = []
-            st.session_state.game_data = []
+    if result == "mr_white_win":
+        st.success("🏆 MR WHITE WIN")
+        st.session_state.stage = "setup"
+
+    elif result == "undercover_win":
+        st.success("🔵 UNDERCOVER WINS")
+        st.session_state.stage = "setup"
+
+    elif result == "civilians_win":
+        st.success("🟢 CIVILIANS WIN")
+        st.session_state.stage = "setup"
+
+    else:
+        st.info("🎮 Συνεχίζεται το παιχνίδι")
+        if st.button("➡ Επόμενος γύρος"):
+            st.session_state.stage = "game"
+            st.session_state.current = 0
+            st.session_state.revealed = False
