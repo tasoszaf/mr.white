@@ -2,7 +2,7 @@ import streamlit as st
 import random
 
 # -----------------------
-# 🎯 ΕΔΩ ΒΑΖΕΙΣ ΕΣΥ ΤΙΣ ΛΕΞΕΙΣ
+# WORDS
 # -----------------------
 
 WORDS = [
@@ -14,7 +14,7 @@ WORDS = [
 ]
 
 # -----------------------
-# 🎭 ΡΟΛΟΙ
+# ROLES
 # -----------------------
 
 def assign_roles(players):
@@ -32,14 +32,7 @@ def assign_roles(players):
     ]
 
 # -----------------------
-# 🎲 WORD PICK
-# -----------------------
-
-def get_word_pair():
-    return random.choice(WORDS)
-
-# -----------------------
-# STATE INIT
+# INIT STATE
 # -----------------------
 
 if "players" not in st.session_state:
@@ -48,74 +41,136 @@ if "players" not in st.session_state:
 if "started" not in st.session_state:
     st.session_state.started = False
 
+if "show_role" not in st.session_state:
+    st.session_state.show_role = False
+
+if "votes" not in st.session_state:
+    st.session_state.votes = {}
+
 # -----------------------
-# UI - SETUP
+# UI
 # -----------------------
 
 st.title("🎭 Mr White Game")
+
+# -----------------------
+# SETUP
+# -----------------------
 
 if not st.session_state.started:
 
     name = st.text_input("👤 Όνομα παίκτη")
 
-    if st.button("➕ Προσθήκη παίκτη"):
+    if st.button("➕ Προσθήκη"):
         if name:
             st.session_state.players.append(name)
 
     st.write("👥 Παίκτες:", st.session_state.players)
 
-    if st.button("▶ Έναρξη παιχνιδιού"):
-
+    if st.button("▶ Start Game"):
         if len(st.session_state.players) >= 3:
-
             st.session_state.started = True
             st.session_state.game_data = assign_roles(st.session_state.players)
-            st.session_state.word_pair = get_word_pair()
-            st.session_state.index = 0
-            st.session_state.revealed = False
-
+            st.session_state.word_pair = random.choice(WORDS)
+            st.session_state.stage = "game"
         else:
             st.warning("Χρειάζονται τουλάχιστον 3 παίκτες")
 
 # -----------------------
-# GAME SCREEN
+# GAME
 # -----------------------
 
 else:
 
     game = st.session_state.game_data
     words = st.session_state.word_pair
-    i = st.session_state.index
 
-    st.subheader("🎮 Το παιχνίδι ξεκίνησε")
+    # -------------------
+    # GAME PHASE
+    # -------------------
+    if st.session_state.stage == "game":
 
-    if i < len(game):
+        st.subheader("🎮 Συζήτηση / Παιχνίδι")
 
-        player = game[i]
+        st.write("👥 Παίκτες:", [p["name"] for p in game])
 
-        st.write(f"👉 Δώσε το κινητό στον/στην: **{player['name']}**")
+        if st.button("🗳 Πάμε ψηφοφορία"):
+            st.session_state.stage = "vote"
 
-        if st.button("👁 Δες ρόλο"):
-            st.session_state.revealed = True
+        if st.button("👁 Δες ξανά ρόλο / λέξη"):
+            st.session_state.stage = "reveal_any"
 
-        if st.session_state.revealed:
+    # -------------------
+    # REVEAL ANY TIME
+    # -------------------
+    elif st.session_state.stage == "reveal_any":
 
-            role = player["role"]
+        player_name = st.selectbox(
+            "Διάλεξε παίκτη",
+            [p["name"] for p in game]
+        )
 
-            if role == "mr_white":
-                st.error("❌ Είσαι MR WHITE (δεν έχεις λέξη)")
-            elif role == "undercover":
-                st.warning(f"🧠 Η λέξη σου: {words[1]}")
+        player = next(p for p in game if p["name"] == player_name)
+
+        if st.button("🔍 Δείξε ρόλο"):
+
+            if player["role"] == "mr_white":
+                st.error("❌ MR WHITE (δεν έχεις λέξη)")
+            elif player["role"] == "undercover":
+                st.warning(f"🧠 Λέξη: {words[1]}")
             else:
-                st.success(f"🧠 Η λέξη σου: {words[0]}")
+                st.success(f"🧠 Λέξη: {words[0]}")
 
-            if st.button("🙈 Απόκρυψη & επόμενος παίκτης"):
-                st.session_state.index += 1
-                st.session_state.revealed = False
+        if st.button("⬅ Πίσω"):
+            st.session_state.stage = "game"
 
-    else:
-        st.success("🎉 Όλοι είδαν τον ρόλο τους!")
-        st.write("Τώρα συζήτηση και ψηφοφορία 🗳️ (χειροκίνητα)")
+    # -------------------
+    # VOTING
+    # -------------------
+    elif st.session_state.stage == "vote":
+
+        st.subheader("🗳 Ψηφοφορία")
+
+        options = [p["name"] for p in game]
+
+        vote = st.selectbox("Ποιον ψηφίζεις;", options)
+
+        if st.button("✔ Ψήφισε"):
+            st.session_state.votes[vote] = st.session_state.votes.get(vote, 0) + 1
+            st.success("Καταγράφηκε ψήφος!")
+
+        if st.button("🏁 Τέλος ψηφοφορίας"):
+            st.session_state.stage = "result"
+
+    # -------------------
+    # RESULT
+    # -------------------
+    elif st.session_state.stage == "result":
+
+        st.subheader("🏆 Αποτέλεσμα")
+
+        if st.session_state.votes:
+            eliminated = max(st.session_state.votes, key=st.session_state.votes.get)
+        else:
+            eliminated = random.choice([p["name"] for p in game])
+
+        st.error(f"❌ Βγήκε: {eliminated}")
+
+        player = next(p for p in game if p["name"] == eliminated)
+
+        st.write("🎭 Ρόλος:", player["role"])
+
+        # MR WHITE GUESS
+        if player["role"] == "mr_white":
+
+            guess = st.text_input("🎯 Mr White μάντεψε τη λέξη:")
+
+            if st.button("✔ Έλεγχος"):
+
+                if guess.lower() in [words[0].lower(), words[1].lower()]:
+                    st.success("🎉 Ο Mr White κέρδισε!")
+                else:
+                    st.error("❌ Έχασε!")
 
         if st.button("🔄 Νέο παιχνίδι"):
             st.session_state.clear()
