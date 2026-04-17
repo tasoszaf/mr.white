@@ -18,11 +18,7 @@ WORDS = [
     ("ψωμί", "τυρί"),
 ]
 
-# ================= LOAD / SAVE =================
-
-def save_players(players):
-    with open(PLAYERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(players, f, ensure_ascii=False)
+# ================= LOAD / SAVE PLAYERS =================
 
 def load_players():
     if os.path.exists(PLAYERS_FILE):
@@ -30,9 +26,11 @@ def load_players():
             return json.load(f)
     return []
 
-def save_game(game_state):
-    with open(GAME_FILE, "w", encoding="utf-8") as f:
-        json.dump(game_state, f, ensure_ascii=False)
+def save_players(players):
+    with open(PLAYERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(players, f, ensure_ascii=False, indent=2)
+
+# ================= LOAD / SAVE GAME =================
 
 def load_game():
     if os.path.exists(GAME_FILE):
@@ -40,10 +38,11 @@ def load_game():
             return json.load(f)
     return None
 
-# ================= INIT STATE =================
+def save_game(game):
+    with open(GAME_FILE, "w", encoding="utf-8") as f:
+        json.dump(game, f, ensure_ascii=False, indent=2)
 
-if "players" not in st.session_state:
-    st.session_state.players = load_players()
+# ================= INIT =================
 
 if "game" not in st.session_state:
     st.session_state.game = load_game()
@@ -79,7 +78,7 @@ def assign_roles(players):
 
     return [{"name": players[i], "role": roles[i]} for i in range(len(players))]
 
-# ================= WIN LOGIC =================
+# ================= WIN CHECK =================
 
 def check_winner(players):
     roles = [p["role"] for p in players]
@@ -88,9 +87,7 @@ def check_winner(players):
     undercovers = roles.count("undercover")
     mr_whites = roles.count("mr_white")
 
-    infiltrators = undercovers + mr_whites
-
-    if civilians <= 1 and infiltrators > 0:
+    if civilians <= 1 and (undercovers + mr_whites) > 0:
         return "INFILTRATORS"
 
     if undercovers == 0 and mr_whites == 0:
@@ -100,13 +97,17 @@ def check_winner(players):
 
 # ================= UI =================
 
-st.title("🎭 Mr White (Persistent Version)")
+st.title("🎭 Mr White (JSON Persistent Edition)")
 
-# ================= SETUP =================
+# ================= LOAD PLAYERS =================
+
+players = load_players()
+
+# ================= SETUP PHASE =================
 
 if st.session_state.game is None:
 
-    st.subheader("➕ Players Setup")
+    st.subheader("👥 Players Setup")
 
     new_name = st.text_input("👤 Νέος παίκτης")
 
@@ -114,38 +115,48 @@ if st.session_state.game is None:
 
     with col1:
         if st.button("➕ Add Player"):
-            if new_name and new_name not in st.session_state.players:
-                st.session_state.players.append(new_name)
-                save_players(st.session_state.players)
-                st.rerun()
+            if new_name:
+                players = load_players()
+
+                if new_name not in players:
+                    players.append(new_name)
+                    save_players(players)
+                    st.rerun()
 
     with col2:
         if st.button("🗑 Clear Players"):
-            st.session_state.players = []
             save_players([])
             st.rerun()
 
-    st.write("📋 Saved Players:")
-    st.write(st.session_state.players)
+    st.write("📋 Saved Players (JSON):")
+    st.write(players)
+
+    st.divider()
+
+    # Dropdown από JSON
+    if players:
+        selected = st.selectbox("👤 Επιλογή παίκτη", players)
 
     if st.button("▶ Start Game"):
+        players = load_players()
 
-        if len(st.session_state.players) >= 3:
+        if len(players) >= 3:
 
             st.session_state.game = {
-                "players": assign_roles(st.session_state.players.copy()),
+                "players": assign_roles(players.copy()),
                 "word": random.choice(WORDS),
             }
+
+            save_game(st.session_state.game)
 
             for p in st.session_state.game["players"]:
                 st.session_state.revealed[p["name"]] = False
 
-            save_game(st.session_state.game)
             st.rerun()
 
-# ================= RESTORE GAME =================
+# ================= GAME PHASE =================
 
-elif st.session_state.game is not None:
+else:
 
     game = st.session_state.game
     players = game["players"]
@@ -257,8 +268,10 @@ elif st.session_state.game is not None:
 
             if st.button("🔁 Restart Game"):
                 st.session_state.clear()
+
                 if os.path.exists(GAME_FILE):
                     os.remove(GAME_FILE)
+
                 st.rerun()
 
         else:
