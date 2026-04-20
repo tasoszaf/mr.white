@@ -436,23 +436,10 @@ else:
 
     if st.button("🔥 Remove Player"):
         removed = players[idx]
-
-        role_labels = {
-            "mr_white": "⚪ Mr White",
-            "undercover": "🟡 Undercover",
-            "πολίτης": "🟢 Πολίτης"
-        }
-
-        st.success(f"❌ Ο {removed['name']} αποχώρησε")
-        st.info(f"🎭 Ρόλος: {role_labels.get(removed['role'], removed['role'])}")
-
-        st.balloons()
-
         players = [p for p in players if p["name"] != removed["name"]]
         game["players"] = players
+        st.session_state.revealed.pop(removed["name"], None)
         save_game(game)
-
-        st.stop()
 
         winner = check_winner(game["players"])
 
