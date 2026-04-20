@@ -236,8 +236,8 @@ else:
             back_word = ""
             back_color = "#c0392b"
             back_text_color = "#fff"
-        elif p["role"] == "undercover":
-            back_role = "🕵️ UNDERCOVER"
+        elif p["role"] == "🟡 UNDEROVER":
+            back_role = "UNDERCOVER"
             back_word = word[1]
             back_color = "#d68910"
             back_text_color = "#fff"
@@ -429,10 +429,10 @@ else:
             st.session_state.mr_white_guess_mode = True
         elif winner == "INFILTRATORS":
             st.session_state.finished = True
-            st.session_state.winner = "🟡 INFILTRATORS"
+            st.session_state.winner = "🟡 UNDERCOVERS/MR.WHITE"
         elif winner == "CIVILIANS":
             st.session_state.finished = True
-            st.session_state.winner = "🟢 CIVILIANS"
+            st.session_state.winner = "🟢 ΠΟΛΙΤΕΣ"
         else:
             st.session_state.last_out = None
 
@@ -455,10 +455,10 @@ else:
                 winner = check_winner(game["players"])
                 if winner == "INFILTRATORS":
                     st.session_state.finished = True
-                    st.session_state.winner = "🟡 INFILTRATORS"
+                    st.session_state.winner = "🟡 UNDERCOVERS/MR.WHITE"
                 elif winner == "CIVILIANS":
                     st.session_state.finished = True
-                    st.session_state.winner = "🟢 CIVILIANS"
+                    st.session_state.winner = "🟢 ΠΟΛΙΤΕΣ"
 
             st.session_state.mr_white_guess_mode = False
             st.rerun()
