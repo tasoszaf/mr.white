@@ -233,8 +233,8 @@ else:
             back_word = ""
             back_color = "#c0392b"
             back_text_color = "#fff"
-        elif p["role"] == "🟡 UNDEROVER":
-            back_role = "UNDERCOVER"
+        elif p["role"] == "undercover":
+            back_role = "🟡 UNDERCOVER"
             back_word = word[1]
             back_color = "#d68910"
             back_text_color = "#fff"
