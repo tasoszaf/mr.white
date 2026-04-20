@@ -97,11 +97,7 @@ def check_winner(players):
 
 # ================= UI =================
 
-st.title("🎭 Mr White (JSON Persistent Edition)")
-
-# ================= LOAD PLAYERS =================
-
-players = load_players()
+st.title("🎭 Mr White")
 
 # ================= SETUP PHASE =================
 
@@ -109,50 +105,69 @@ if st.session_state.game is None:
 
     st.subheader("👥 Players Setup")
 
-    new_name = st.text_input("👤 Νέος παίκτης")
+    all_players = load_players()
 
-    col1, col2 = st.columns(2)
+    # --- Επιλογή από αποθηκευμένους παίκτες ---
+    selected_players = []
 
-    with col1:
-        if st.button("➕ Add Player"):
-            if new_name:
-                players = load_players()
+    if all_players:
+        st.markdown("**Αποθηκευμένοι παίκτες — επίλεξε ποιοι παίζουν:**")
 
-                if new_name not in players:
-                    players.append(new_name)
-                    save_players(players)
-                    st.rerun()
+        cols = st.columns(2)
+        to_delete = []
 
-    with col2:
-        if st.button("🗑 Clear Players"):
-            save_players([])
+        for i, name in enumerate(all_players):
+            with cols[i % 2]:
+                col_check, col_del = st.columns([4, 1])
+                with col_check:
+                    if st.checkbox(name, key=f"sel_{name}"):
+                        selected_players.append(name)
+                with col_del:
+                    if st.button("🗑", key=f"del_{name}", help=f"Διαγραφή {name}"):
+                        to_delete.append(name)
+
+        if to_delete:
+            updated = [p for p in all_players if p not in to_delete]
+            save_players(updated)
             st.rerun()
 
-    st.write("📋 Saved Players (JSON):")
-    st.write(players)
+        st.divider()
+
+    # --- Προσθήκη νέου παίκτη ---
+    st.markdown("**Προσθήκη νέου παίκτη:**")
+    new_name = st.text_input("👤 Όνομα νέου παίκτη")
+
+    if st.button("➕ Add Player"):
+        if new_name:
+            all_players = load_players()
+            if new_name not in all_players:
+                all_players.append(new_name)
+                save_players(all_players)
+                st.rerun()
 
     st.divider()
 
-    # Dropdown από JSON
-    if players:
-        selected = st.selectbox("👤 Επιλογή παίκτη", players)
+    # --- Έναρξη ---
+    if len(selected_players) >= 3:
+        st.success(f"✅ Επιλεγμένοι: {', '.join(selected_players)}")
+    elif selected_players:
+        st.warning(f"⚠️ Χρειάζονται τουλάχιστον 3 παίκτες. Έχεις επιλέξει {len(selected_players)}.")
+    else:
+        st.info("Επίλεξε παίκτες ή πρόσθεσε νέους.")
 
-    if st.button("▶ Start Game"):
-        players = load_players()
+    if st.button("▶ Start Game", disabled=len(selected_players) < 3):
 
-        if len(players) >= 3:
+        st.session_state.game = {
+            "players": assign_roles(selected_players.copy()),
+            "word": random.choice(WORDS),
+        }
 
-            st.session_state.game = {
-                "players": assign_roles(players.copy()),
-                "word": random.choice(WORDS),
-            }
+        save_game(st.session_state.game)
 
-            save_game(st.session_state.game)
+        for p in st.session_state.game["players"]:
+            st.session_state.revealed[p["name"]] = False
 
-            for p in st.session_state.game["players"]:
-                st.session_state.revealed[p["name"]] = False
-
-            st.rerun()
+        st.rerun()
 
 # ================= GAME PHASE =================
 
@@ -267,7 +282,13 @@ else:
             st.success(f"🏁 GAME OVER → {st.session_state.winner}")
 
             if st.button("🔁 Restart Game"):
-                st.session_state.clear()
+                st.session_state.game = None
+                st.session_state.revealed = {}
+                st.session_state.last_out = None
+                st.session_state.mr_white_guess_mode = False
+                st.session_state.mr_white_won = False
+                st.session_state.finished = False
+                st.session_state.winner = None
 
                 if os.path.exists(GAME_FILE):
                     os.remove(GAME_FILE)
