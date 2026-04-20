@@ -23,8 +23,11 @@ WORDS = [
 
 def load_players():
     if os.path.exists(PLAYERS_FILE):
-        with open(PLAYERS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(PLAYERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return []
     return []
 
 def save_players(players):
@@ -33,8 +36,12 @@ def save_players(players):
 
 def load_game():
     if os.path.exists(GAME_FILE):
-        with open(GAME_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(GAME_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            os.remove(GAME_FILE)
+            return None
     return None
 
 def save_game(game):
