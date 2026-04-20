@@ -89,10 +89,18 @@ if "winner" not in st.session_state:
 
 def assign_roles(players):
     roles = ["mr_white", "undercover"] + ["πολίτης"] * (len(players) - 2)
-    shuffled = players[:]
-    random.shuffle(shuffled)
+
+    random.shuffle(players)
     random.shuffle(roles)
-    return [{"name": shuffled[i], "role": roles[i]} for i in range(len(shuffled))]
+
+    assigned = []
+    for i, player in enumerate(players):
+        assigned.append({
+            "name": player,
+            "role": roles[i]
+        })
+
+    return assigned
 
 def check_winner(players):
     roles = [p["role"] for p in players]
