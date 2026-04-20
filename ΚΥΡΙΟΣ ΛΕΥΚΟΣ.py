@@ -466,7 +466,7 @@ else:
         guess = st.text_input("Μάντεψε τη λέξη:")
 
         if st.button("✔ Check Guess"):
-            if guess.lower() in [word[0].lower(), word[1].lower()]:
+            if guess.strip().lower() == word[0].lower():
                 st.session_state.finished = True
                 st.session_state.winner = "⚪ MR WHITE"
             else:
