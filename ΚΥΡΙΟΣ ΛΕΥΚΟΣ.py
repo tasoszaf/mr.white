@@ -104,7 +104,7 @@ def reset_game():
 
 # ================= UI =================
 
-st.title("🎭 Mr White")
+st.title("ΚΥΡΙΟΣ ΛΕΥΚΟΣ")
 
 # ================= END SCREEN =================
 
@@ -118,14 +118,11 @@ if st.session_state.finished:
 
     if winner == "⚪ MR WHITE":
         st.error("## ⚪ Νίκησε ο Mr. White!")
-        st.markdown("Ο Mr. White μάντεψε σωστά τη λέξη και κέρδισε μόνος του.")
     elif winner == "🟡 INFILTRATORS":
-        st.warning("## 🟡 Νίκησαν οι Infiltrators!")
-        st.markdown("Undercover & Mr. White επιβίωσαν — οι πολίτες έχασαν.")
+        st.warning("## 🟡 Νίκησαν οι Undercovers!")
     elif winner == "🟢 CIVILIANS":
         st.success("## 🟢 Νίκησαν οι Πολίτες!")
-        st.markdown("Όλοι οι infiltrators αποκαλύφθηκαν!")
-
+        
     st.divider()
     st.subheader("🎭 Ρόλοι παικτών")
 
@@ -150,7 +147,7 @@ if st.session_state.finished:
     st.markdown(f"**Λέξη πολιτών:** {word[0]}  |  **Λέξη undercover:** {word[1]}")
     st.divider()
 
-    if st.button("🆕 New Game", type="primary"):
+    if st.button("New Game", type="primary"):
         reset_game()
         st.rerun()
 
@@ -186,7 +183,7 @@ elif st.session_state.game is None:
         st.divider()
 
     st.markdown("**Προσθήκη νέου παίκτη:**")
-    new_name = st.text_input("👤 Όνομα νέου παίκτη")
+    new_name = st.text_input("Όνομα νέου παίκτη")
 
     if st.button("➕ Add Player"):
         if new_name:
@@ -199,9 +196,9 @@ elif st.session_state.game is None:
     st.divider()
 
     if len(selected_players) >= 3:
-        st.success(f"✅ Επιλεγμένοι: {', '.join(selected_players)}")
+        st.success(f"Επιλεγμένοι: {', '.join(selected_players)}")
     elif selected_players:
-        st.warning(f"⚠️ Χρειάζονται τουλάχιστον 3 παίκτες. Έχεις επιλέξει {len(selected_players)}.")
+        st.warning(f"Χρειάζονται τουλάχιστον 3 παίκτες. Έχεις επιλέξει {len(selected_players)}.")
     else:
         st.info("Επίλεξε παίκτες ή πρόσθεσε νέους.")
 
@@ -225,7 +222,7 @@ else:
     players = game["players"]
     word = game["word"]
 
-    st.subheader("🎴 Κάρτες Παικτών")
+    st.subheader("ΠΑΙΚΤΕΣ")
     st.caption("Πάτα την κάρτα σου για να δεις τον ρόλο σου — μόνος/η σου!")
 
     # Build card data for HTML
