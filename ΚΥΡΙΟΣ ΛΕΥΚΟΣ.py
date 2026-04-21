@@ -197,9 +197,9 @@ if st.session_state.finished:
 
     st.divider()
     if winner == "⚪ MR WHITE":
-        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>⚪ Νίκησε ο Mr. White!</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>⚪ Νίκησε οι Mr. White/Undercovers!</h2>", unsafe_allow_html=True)
     elif winner == "🟡 INFILTRATORS":
-        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟡 Νίκησαν οι Undercovers!</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟡 Νίκησαν οι Mr. White/Undercovers!</h2>", unsafe_allow_html=True)
     elif winner == "🟢 CIVILIANS":
         st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
     st.divider()
