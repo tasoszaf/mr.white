@@ -85,6 +85,9 @@ if "finished" not in st.session_state:
 if "winner" not in st.session_state:
     st.session_state.winner = None
 
+if "selected_players" not in st.session_state:
+    st.session_state.selected_players = []
+
 # ================= HELPERS =================
 
 def assign_roles(players):
@@ -121,6 +124,7 @@ def reset_game():
     st.session_state.mr_white_won = False
     st.session_state.finished = False
     st.session_state.winner = None
+    st.session_state.selected_players = []
     if os.path.exists(GAME_FILE):
         os.remove(GAME_FILE)
 
@@ -169,7 +173,7 @@ if st.session_state.finished:
     st.markdown(f"**Λέξη πολιτών:** {word[0]}  |  **Λέξη undercover:** {word[1]}")
     st.divider()
 
-    if st.button("New Game", type="primary"):
+    if st.button("🔄 Νέο Παιχνίδι", type="primary", use_container_width=True):
         reset_game()
         st.rerun()
 
@@ -177,55 +181,83 @@ if st.session_state.finished:
 
 elif st.session_state.game is None:
 
-    st.subheader("👥 Players Setup")
+    st.subheader("👥 Επιλογή Παικτών")
 
     all_players = load_players()
-    selected_players = []
 
-    if all_players:
-        st.markdown("**Αποθηκευμένοι παίκτες — επίλεξε ποιοι παίζουν:**")
-        cols = st.columns(2)
-        to_delete = []
-
-        for i, name in enumerate(all_players):
-            with cols[i % 2]:
-                col_check, col_del = st.columns([4, 1])
-                with col_check:
-                    if st.checkbox(name, key=f"sel_{name}"):
-                        selected_players.append(name)
-                with col_del:
-                    if st.button("🗑", key=f"del_{name}", help=f"Διαγραφή {name}"):
-                        to_delete.append(name)
-
-        if to_delete:
-            updated = [p for p in all_players if p not in to_delete]
-            save_players(updated)
-            st.rerun()
-
-        st.divider()
-
-    st.markdown("**Προσθήκη νέου παίκτη:**")
-    new_name = st.text_input("Όνομα νέου παίκτη")
-
-    if st.button("➕ Add Player"):
-        if new_name:
-            all_players = load_players()
-            if new_name not in all_players:
-                all_players.append(new_name)
-                save_players(all_players)
-                st.rerun()
+    # ===== ADD NEW PLAYER =====
+    col_input, col_btn = st.columns([3, 1])
+    with col_input:
+        new_name = st.text_input("Προσθήκη νέου παίκτη", placeholder="Γράψε όνομα...", label_visibility="collapsed")
+    with col_btn:
+        if st.button("➕ Προσθήκη", use_container_width=True):
+            if new_name and new_name.strip():
+                all_players = load_players()
+                clean_name = new_name.strip()
+                if clean_name not in all_players:
+                    all_players.append(clean_name)
+                    save_players(all_players)
+                    st.rerun()
+                else:
+                    st.warning(f"Ο παίκτης '{clean_name}' υπάρχει ήδη!")
 
     st.divider()
 
-    if len(selected_players) >= 3:
-        st.success(f"Επιλεγμένοι: {', '.join(selected_players)}")
-    elif selected_players:
-        st.warning(f"Χρειάζονται τουλάχιστον 3 παίκτες. Έχεις επιλέξει {len(selected_players)}.")
+    # ===== AVAILABLE PLAYERS LIST =====
+    if all_players:
+        st.markdown("**📋 Διαθέσιμοι παίκτες:**")
+        
+        for name in all_players:
+            col1, col2, col3 = st.columns([4, 1, 1])
+            
+            with col1:
+                # Show selected players with green checkmark
+                if name in st.session_state.selected_players:
+                    st.markdown(f"✅ **{name}**")
+                else:
+                    st.markdown(f"**{name}**")
+            
+            with col2:
+                if name not in st.session_state.selected_players:
+                    if st.button("➕", key=f"add_{name}", help=f"Προσθήκη στο παιχνίδι"):
+                        st.session_state.selected_players.append(name)
+                        st.rerun()
+                else:
+                    if st.button("➖", key=f"remove_{name}", help=f"Αφαίρεση από το παιχνίδι"):
+                        st.session_state.selected_players.remove(name)
+                        st.rerun()
+            
+            with col3:
+                if st.button("🗑", key=f"del_{name}", help=f"Διαγραφή οριστικά"):
+                    all_players = load_players()
+                    all_players.remove(name)
+                    save_players(all_players)
+                    if name in st.session_state.selected_players:
+                        st.session_state.selected_players.remove(name)
+                    st.rerun()
     else:
-        st.info("Επίλεξε παίκτες ή πρόσθεσε νέους.")
+        st.info("💡 Δεν υπάρχουν αποθηκευμένοι παίκτες. Πρόσθεσε τον πρώτο!")
 
-    if st.button("▶ Start Game", disabled=len(selected_players) < 3):
-        players_with_roles = assign_roles(selected_players.copy())
+    st.divider()
+
+    # ===== SELECTED PLAYERS DISPLAY =====
+    if st.session_state.selected_players:
+        st.markdown(f"**🎮 Παίκτες στο παιχνίδι ({len(st.session_state.selected_players)}):**")
+        st.success(", ".join(st.session_state.selected_players))
+        
+        if len(st.session_state.selected_players) < 3:
+            st.warning(f"⚠️ Χρειάζονται τουλάχιστον 3 παίκτες (έχεις {len(st.session_state.selected_players)})")
+    else:
+        st.info("💡 Πάτα ➕ δίπλα από κάθε παίκτη για να τον προσθέσεις στο παιχνίδι")
+
+    # ===== START GAME BUTTON =====
+    st.divider()
+    
+    if st.button("▶️ ΕΝΑΡΞΗ ΠΑΙΧΝΙΔΙΟΥ", 
+                 disabled=len(st.session_state.selected_players) < 3,
+                 type="primary",
+                 use_container_width=True):
+        players_with_roles = assign_roles(st.session_state.selected_players.copy())
         st.session_state.game = {
             "players": players_with_roles,
             "all_players": [p.copy() for p in players_with_roles],
@@ -234,6 +266,7 @@ elif st.session_state.game is None:
         save_game(st.session_state.game)
         for p in st.session_state.game["players"]:
             st.session_state.revealed[p["name"]] = False
+        st.session_state.selected_players = []  # Clear selection
         st.rerun()
 
 # ================= GAME PHASE =================
@@ -448,10 +481,10 @@ else:
             st.session_state.mr_white_guess_mode = True
         elif winner == "INFILTRATORS":
             st.session_state.finished = True
-            st.session_state.winner = "🟡 UNDERCOVERS/MR.WHITE"
+            st.session_state.winner = "🟡 INFILTRATORS"
         elif winner == "CIVILIANS":
             st.session_state.finished = True
-            st.session_state.winner = "🟢 ΠΟΛΙΤΕΣ"
+            st.session_state.winner = "🟢 CIVILIANS"
         else:
             st.session_state.last_out = None
 
@@ -466,7 +499,7 @@ else:
         guess = st.text_input("Μάντεψε τη λέξη:")
 
         if st.button("✔ Check Guess"):
-            if guess.strip().lower() == word[0].lower():
+            if guess.strip().upper() == word[0].upper():
                 st.session_state.finished = True
                 st.session_state.winner = "⚪ MR WHITE"
             else:
@@ -474,10 +507,10 @@ else:
                 winner = check_winner(game["players"])
                 if winner == "INFILTRATORS":
                     st.session_state.finished = True
-                    st.session_state.winner = "🟡 UNDERCOVERS/MR.WHITE"
+                    st.session_state.winner = "🟡 INFILTRATORS"
                 elif winner == "CIVILIANS":
                     st.session_state.finished = True
-                    st.session_state.winner = "🟢 ΠΟΛΙΤΕΣ"
+                    st.session_state.winner = "🟢 CIVILIANS"
 
             st.session_state.mr_white_guess_mode = False
             st.rerun()
