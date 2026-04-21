@@ -14,12 +14,9 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-  /* Global */
   .stApp { background: linear-gradient(135deg,#0f0c29,#302b63,#24243e); color:#fff; }
   #MainMenu,footer,header { visibility:hidden; }
-  .block-container { padding: 0.5rem 0.75rem 2rem !important; max-width:480px !important; }
-
-  /* Typography */
+  .block-container { padding:0.5rem 0.75rem 2rem !important; max-width:480px !important; }
   h1 {
     text-align:center; font-size:1.8rem !important; font-weight:900 !important;
     background:linear-gradient(45deg,#ff6b6b,#4ecdc4,#ffe66d);
@@ -27,50 +24,36 @@ st.markdown("""
     letter-spacing:3px; margin-bottom:6px !important;
   }
   h2,h3 { color:#4ecdc4 !important; font-weight:700 !important; font-size:1rem !important; text-align:center; margin-bottom:4px !important; }
-  p,label,.stMarkdown { color:#e0e0e0; font-size:0.85rem; }
-  .stCaption { font-size:0.75rem !important; text-align:center; }
-
-  /* Buttons */
   .stButton > button {
     background:linear-gradient(135deg,#667eea,#764ba2) !important;
     border:none !important; border-radius:10px !important;
     color:#fff !important; font-weight:700 !important;
-    padding:0.35rem 0.5rem !important; font-size:0.8rem !important;
+    padding:0.35rem 0.5rem !important; font-size:0.85rem !important;
     width:100%; transition:all 0.2s ease !important;
   }
   .stButton > button[kind="primary"] {
     background:linear-gradient(135deg,#f093fb,#f5576c) !important;
-    padding:0.6rem !important; font-size:0.95rem !important;
+    padding:0.65rem !important; font-size:1rem !important;
   }
   .stButton > button:disabled { opacity:0.35 !important; }
-
-  /* Input */
   .stTextInput > div > div > input {
     background:#fff !important; border:2px solid rgba(78,205,196,0.5) !important;
     border-radius:10px !important; color:#000 !important;
     padding:0.5rem 0.75rem !important; font-size:0.95rem !important;
   }
   [data-testid="InputInstructions"] { display:none !important; }
-
-  /* Select */
   .stSelectbox > div > div {
     background:rgba(255,255,255,0.1) !important;
     border:2px solid rgba(78,205,196,0.3) !important;
-    border-radius:10px !important; font-size:0.85rem !important;
+    border-radius:10px !important;
   }
-
-  /* Divider */
   hr { border-color:rgba(78,205,196,0.2) !important; margin:0.6rem 0 !important; }
-
-  /* Alerts */
   .stAlert { background:rgba(255,255,255,0.05) !important; border-radius:10px !important; font-size:0.8rem !important; }
-
-  /* Column gaps — tighter */
-  [data-testid="column"] { padding:0 2px !important; }
+  [data-testid="column"] { padding:0 3px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ================= FILES =================
+# ================= CONSTS =================
 GAME_FILE = "game.json"
 
 AVATAR_SEEDS = [
@@ -123,6 +106,8 @@ if "game" not in st.session_state:
     st.session_state.game = load_game()
 if "selected_avatars" not in st.session_state:
     st.session_state.selected_avatars = {}
+if "carousel_idx" not in st.session_state:
+    st.session_state.carousel_idx = 0
 if "current_picker" not in st.session_state:
     st.session_state.current_picker = None
 if "elimination_msg" not in st.session_state:
@@ -153,6 +138,7 @@ def check_winner(players):
 def reset():
     st.session_state.game = None
     st.session_state.selected_avatars = {}
+    st.session_state.carousel_idx = 0
     st.session_state.current_picker = None
     st.session_state.elimination_msg = None
     st.session_state.mr_white_guess_mode = False
@@ -165,11 +151,10 @@ def reset():
 # ================= UI =================
 st.markdown("<h1>🎭 ΚΥΡΙΟΣ ΛΕΥΚΟΣ</h1>", unsafe_allow_html=True)
 
-# ===== WINNER SCREEN =====
+# ===== WINNER =====
 if st.session_state.finished:
-    w = st.session_state.winner
     st.divider()
-    if w == "undercover":
+    if st.session_state.winner == "undercover":
         st.markdown("<h2>🟡⚪ Νίκησαν οι Undercover & Mr. White!</h2>", unsafe_allow_html=True)
     else:
         st.markdown("<h2>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
@@ -183,25 +168,28 @@ elif st.session_state.game is None:
     selected = st.session_state.selected_avatars
     taken = set(selected.keys())
     n = len(selected)
+    idx = st.session_state.carousel_idx
 
     st.markdown("<h3>👤 Επιλογή Avatar</h3>", unsafe_allow_html=True)
-    st.caption(f"{n} παίκτες έχουν επιλέξει — πάτα ＋ για να επιλέξεις")
+    st.caption(f"{n} παίκτες έχουν επιλέξει")
 
-    # NAME INPUT
+    # ===== NAME INPUT =====
     if st.session_state.current_picker:
         seed = st.session_state.current_picker
         st.markdown(f"""
-        <div style='text-align:center;padding:8px;background:rgba(78,205,196,0.15);
-             border-radius:12px;border:2px solid rgba(78,205,196,0.4);margin-bottom:8px;'>
-          <img src='{avatar_url(seed)}' width='52' style='border-radius:50%;margin-bottom:4px;display:block;margin:0 auto 4px;'/>
-          <p style='margin:0;font-size:0.8rem;color:#4ecdc4;'>Γράψε το όνομά σου:</p>
+        <div style='text-align:center;padding:10px;background:rgba(78,205,196,0.15);
+             border-radius:12px;border:2px solid rgba(78,205,196,0.4);margin-bottom:10px;'>
+          <img src='{avatar_url(seed)}' width='80'
+               style='border-radius:50%;margin:0 auto 6px;display:block;
+                      border:3px solid #4ecdc4;'/>
+          <p style='margin:0;font-size:0.85rem;color:#4ecdc4;'>Γράψε το όνομά σου:</p>
         </div>
         """, unsafe_allow_html=True)
-        c1,c2,c3 = st.columns([4,1,1])
+        c1, c2, c3 = st.columns([4,1,1])
         with c1:
             nm = st.text_input("nm", placeholder="Όνομα...", label_visibility="collapsed", key="name_field")
         with c2:
-            if st.button("✔", use_container_width=True, key="ok_btn"):
+            if st.button("✔", use_container_width=True):
                 nm = nm.strip() if nm else ""
                 if not nm:
                     st.warning("Γράψε όνομα!")
@@ -210,54 +198,75 @@ elif st.session_state.game is None:
                 else:
                     st.session_state.selected_avatars[seed] = nm
                     st.session_state.current_picker = None
+                    # Προχώρα αυτόματα στο επόμενο ελεύθερο avatar
+                    new_taken = set(st.session_state.selected_avatars.keys())
+                    for i in range(len(AVATAR_SEEDS)):
+                        check = (idx + 1 + i) % len(AVATAR_SEEDS)
+                        if AVATAR_SEEDS[check] not in new_taken:
+                            st.session_state.carousel_idx = check
+                            break
                     st.rerun()
         with c3:
-            if st.button("✖", use_container_width=True, key="cancel_btn"):
+            if st.button("✖", use_container_width=True):
                 st.session_state.current_picker = None
                 st.rerun()
         st.divider()
 
-    # AVATAR GRID — 5 per row
-    for row_start in range(0, len(AVATAR_SEEDS), 5):
-        row_seeds = AVATAR_SEEDS[row_start:row_start+5]
-        cols = st.columns(5)
-        for j, seed in enumerate(row_seeds):
-            with cols[j]:
-                is_taken = seed in taken
-                name_lbl = selected.get(seed,"")
-                border = "3px solid #4ecdc4" if is_taken else "2px solid rgba(255,255,255,0.1)"
-                opacity = "0.35" if is_taken else "1"
-                st.markdown(f"""
-                <div style='text-align:center;opacity:{opacity};margin-bottom:2px;'>
-                  <img src='{avatar_url(seed)}' width='44'
-                    style='border-radius:50%;border:{border};display:block;margin:0 auto;'/>
-                  {'<div style="font-size:8px;color:#4ecdc4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44px;margin:0 auto;">✓'+name_lbl+'</div>' if is_taken else '<div style="height:12px;"></div>'}
-                </div>
-                """, unsafe_allow_html=True)
-                if not is_taken:
-                    if st.button("＋", key=f"p_{seed}", use_container_width=True):
-                        st.session_state.current_picker = seed
-                        st.rerun()
+    # ===== CAROUSEL =====
+    seed = AVATAR_SEEDS[idx]
+    is_taken = seed in taken
+    taken_by = selected.get(seed, "")
+
+    # Carousel container
+    st.markdown(f"""
+    <div style='text-align:center;padding:16px 0 8px;'>
+      <img src='{avatar_url(seed)}' width='130'
+           style='border-radius:50%;
+                  border: {"4px solid #4ecdc4" if is_taken else "3px solid rgba(255,255,255,0.2)"};
+                  opacity: {"0.5" if is_taken else "1"};
+                  display:block;margin:0 auto;'/>
+      {'<p style="margin:8px 0 0;font-size:0.85rem;color:#4ecdc4;">✓ ' + taken_by + '</p>' if is_taken else '<div style="height:24px;"></div>'}
+      <p style='margin:4px 0 0;font-size:0.75rem;color:rgba(255,255,255,0.4);'>{idx+1} / {len(AVATAR_SEEDS)}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Βέλη + επιλογή
+    col_l, col_mid, col_r = st.columns([1, 2, 1])
+    with col_l:
+        if st.button("◀", use_container_width=True):
+            st.session_state.carousel_idx = (idx - 1) % len(AVATAR_SEEDS)
+            st.rerun()
+    with col_mid:
+        if is_taken:
+            st.button("✓ Επιλεγμένο", disabled=True, use_container_width=True)
+        else:
+            if st.button("＋ Επιλογή", use_container_width=True, type="primary"):
+                st.session_state.current_picker = seed
+                st.rerun()
+    with col_r:
+        if st.button("▶", use_container_width=True):
+            st.session_state.carousel_idx = (idx + 1) % len(AVATAR_SEEDS)
+            st.rerun()
 
     st.divider()
 
-    # SELECTED LIST
+    # ===== SELECTED LIST =====
     if selected:
-        st.markdown(f"<p style='font-size:0.8rem;margin-bottom:4px;'>🎮 Παίκτες ({n}/20):</p>", unsafe_allow_html=True)
-        sel_items = list(selected.items())
-        for row_start in range(0, len(sel_items), 5):
-            row = sel_items[row_start:row_start+5]
-            cols2 = st.columns(5)
-            for j,(seed,name) in enumerate(row):
-                with cols2[j]:
+        st.markdown(f"<p style='font-size:0.8rem;margin-bottom:6px;color:rgba(255,255,255,0.8);'>🎮 Παίκτες ({n}/20):</p>", unsafe_allow_html=True)
+        items = list(selected.items())
+        for row_start in range(0, len(items), 4):
+            row = items[row_start:row_start+4]
+            cols = st.columns(4)
+            for j, (s, name) in enumerate(row):
+                with cols[j]:
                     st.markdown(f"""
                     <div style='text-align:center;margin-bottom:2px;'>
-                      <img src='{avatar_url(seed)}' width='38' style='border-radius:50%;'/>
+                      <img src='{avatar_url(s)}' width='40' style='border-radius:50%;border:2px solid #4ecdc4;'/>
                       <div style='font-size:8px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>{name}</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button("✖", key=f"rm_{seed}", use_container_width=True):
-                        del st.session_state.selected_avatars[seed]
+                    if st.button("✖", key=f"rm_{s}", use_container_width=True):
+                        del st.session_state.selected_avatars[s]
                         st.rerun()
 
     if n < 4:
@@ -265,11 +274,16 @@ elif st.session_state.game is None:
 
     st.divider()
     if st.button("▶️ ΕΝΑΡΞΗ ΠΑΙΧΝΙΔΙΟΥ", disabled=n<4, type="primary", use_container_width=True):
-        pl = [{"name":name,"seed":seed} for seed,name in selected.items()]
+        pl = [{"name":name,"seed":s} for s,name in selected.items()]
         assigned = assign_roles(pl)
-        st.session_state.game = {"players":assigned,"all_players":[p.copy() for p in assigned],"word":random.choice(WORDS)}
+        st.session_state.game = {
+            "players": assigned,
+            "all_players": [p.copy() for p in assigned],
+            "word": random.choice(WORDS)
+        }
         save_game(st.session_state.game)
         st.session_state.selected_avatars = {}
+        st.session_state.carousel_idx = 0
         st.session_state.current_picker = None
         st.rerun()
 
@@ -287,10 +301,11 @@ else:
         st.markdown(f"""
         <div style='text-align:center;padding:1.2rem;background:{color}33;
              border-radius:14px;margin-bottom:10px;border:2px solid {color}88;'>
-          <img src='{avatar_url(msg["seed"])}' width='64' style='border-radius:50%;margin-bottom:6px;'/>
+          <img src='{avatar_url(msg["seed"])}' width='70'
+               style='border-radius:50%;margin-bottom:6px;display:block;margin:0 auto 6px;'/>
           <div style='font-size:1.6rem;'>💀</div>
           <h3 style='margin:2px 0;color:#fff;font-size:1.3rem;'>{msg["name"]}</h3>
-          <p style='color:#fff;font-size:0.95rem;'>{msg["role"]}</p>
+          <p style='color:#fff;font-size:0.95rem;margin:0;'>{msg["role"]}</p>
         </div>
         """, unsafe_allow_html=True)
         time.sleep(5)
@@ -300,7 +315,7 @@ else:
     st.markdown("<h3>🎮 ΠΑΙΚΤΕΣ</h3>", unsafe_allow_html=True)
     st.caption("Πάτα την κάρτα σου για να δεις τον ρόλο σου")
 
-    # CARDS via components.html
+    # ===== CARDS =====
     import json as _json
     cards_data = []
     for p in players:
@@ -312,29 +327,58 @@ else:
             br,bw,bc = "🟢 ΠΟΛΙΤΗΣ",word[0],"#1e8449"
         cards_data.append({"name":p["name"],"seed":p["seed"],"back_role":br,"back_word":bw,"back_color":bc})
 
-    cards_json = _json.dumps(cards_data,ensure_ascii=False)
+    cards_json = _json.dumps(cards_data, ensure_ascii=False)
     n_players = len(players)
-    n_rows = (n_players+2)//3
-    card_h = 180
-    total_h = n_rows*card_h + (n_rows-1)*8 + 20
+    n_rows = (n_players + 2) // 3
+    # fixed card height 200px + gap 10px
+    total_h = n_rows * 210 + 20
 
     cards_html = f"""
     <style>
+      *{{box-sizing:border-box;}}
       body{{margin:0;font-family:'Segoe UI',sans-serif;background:transparent;}}
-      .grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0;}}
-      .cw{{aspect-ratio:3/5;perspective:600px;cursor:pointer;}}
-      .ci{{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);}}
+      .grid{{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:10px;
+        padding:4px 2px;
+      }}
+      .cw{{
+        height:200px;
+        perspective:600px;
+        cursor:pointer;
+      }}
+      .ci{{
+        position:relative;
+        width:100%;
+        height:100%;
+        transform-style:preserve-3d;
+        transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);
+      }}
       .cw.flipped .ci{{transform:rotateX(180deg);}}
-      .cf,.cb{{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center;}}
+      .cf,.cb{{
+        position:absolute;
+        inset:0;
+        border-radius:12px;
+        backface-visibility:hidden;
+        -webkit-backface-visibility:hidden;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        padding:8px 6px;
+        text-align:center;
+        overflow:hidden;
+      }}
       .cf{{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}}
       .cb{{transform:rotateX(180deg);color:#fff;}}
-      .cf img{{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);margin-bottom:5px;}}
-      .cf .cn{{font-size:10px;font-weight:800;margin-bottom:3px;word-break:break-word;}}
-      .cf .ch{{font-size:8px;opacity:0.7;line-height:1.3;}}
-      .cb .cr{{font-size:10px;font-weight:800;letter-spacing:1px;margin-bottom:5px;}}
-      .cb .cw2{{font-size:14px;font-weight:900;white-space:nowrap;width:90%;text-align:center;}}
-      .cb .cc{{font-size:8px;opacity:0.8;margin-bottom:2px;}}
-      .cb .ch2{{font-size:8px;opacity:0.6;margin-top:3px;}}
+      .cf img{{width:56px;height:56px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);margin-bottom:6px;flex-shrink:0;}}
+      .cf .cn{{font-size:11px;font-weight:800;margin-bottom:4px;word-break:break-word;line-height:1.2;max-width:100%;}}
+      .cf .ch{{font-size:9px;opacity:0.7;line-height:1.3;}}
+      .cb .cr{{font-size:11px;font-weight:800;letter-spacing:1px;margin-bottom:8px;}}
+      .cb .cw2{{font-size:16px;font-weight:900;white-space:nowrap;width:100%;text-align:center;overflow:hidden;}}
+      .cb .cc{{font-size:9px;opacity:0.8;margin-bottom:3px;}}
+      .cb .ch2{{font-size:9px;opacity:0.6;margin-top:6px;}}
     </style>
     <div class="grid" id="g"></div>
     <script>
@@ -348,13 +392,24 @@ else:
           ?`<div class="cc">Η λέξη σου</div><div class="cw2">${{c.back_word}}</div>`
           :`<div class="cc">Δεν έχεις λέξη</div>`;
         w.innerHTML=`<div class="ci">
-          <div class="cf"><img src="${{base+c.seed}}"/><div class="cn">${{c.name}}</div><div class="ch">👆 Πάτα για ρόλο</div></div>
-          <div class="cb" style="background:${{c.back_color}};"><div class="cr">${{c.back_role}}</div>${{wrd}}<div class="ch2">👆 Κρύψιμο</div></div>
+          <div class="cf">
+            <img src="${{base+c.seed}}"/>
+            <div class="cn">${{c.name}}</div>
+            <div class="ch">👆 Πάτα για ρόλο</div>
+          </div>
+          <div class="cb" style="background:${{c.back_color}};">
+            <div class="cr">${{c.back_role}}</div>
+            ${{wrd}}
+            <div class="ch2">👆 Κρύψιμο</div>
+          </div>
         </div>`;
         w.addEventListener("click",()=>w.classList.toggle("flipped"));
         g.appendChild(w);
         const we=w.querySelector(".cw2");
-        if(we){{let s=14;while(we.scrollWidth>we.clientWidth&&s>7){{s--;we.style.fontSize=s+"px";}}}}
+        if(we){{
+          let s=16;
+          while(we.scrollWidth>we.clientWidth&&s>8){{s--;we.style.fontSize=s+"px";}}
+        }}
       }});
     </script>
     """
@@ -391,11 +446,15 @@ else:
             st.rerun()
     else:
         names = [p["name"] for p in players]
-        idx = st.selectbox("Ποιος φεύγει;", range(len(names)), format_func=lambda i: names[i])
+        idx2 = st.selectbox("Ποιος φεύγει;", range(len(names)), format_func=lambda i: names[i])
         if st.button("🔥 Αφαίρεση Παίκτη", use_container_width=True):
-            removed = players[idx]
+            removed = players[idx2]
             role_labels = {"mr_white":"⚪ Mr. White","undercover":"🟡 Undercover","πολίτης":"🟢 Πολίτης"}
-            st.session_state.elimination_msg = {"name":removed["name"],"seed":removed["seed"],"role":role_labels.get(removed["role"],"")}
+            st.session_state.elimination_msg = {
+                "name": removed["name"],
+                "seed": removed["seed"],
+                "role": role_labels.get(removed["role"],"")
+            }
             game["players"] = [p for p in players if p["name"] != removed["name"]]
             save_game(game)
             w = check_winner(game["players"])
