@@ -207,23 +207,14 @@ if st.session_state.finished:
 # ================= SETUP PHASE =================
 elif st.session_state.game is None:
 
-    selected = st.session_state.selected_avatars  # {seed: name}
+    selected = st.session_state.selected_avatars
     taken_seeds = set(selected.keys())
     n_selected = len(selected)
-
-    # ===== CHECK QUERY PARAMS για avatar click =====
-    params = st.query_params
-    if "pick" in params and not st.session_state.current_picker:
-        seed = params["pick"]
-        if seed in AVATAR_SEEDS and seed not in taken_seeds:
-            st.session_state.current_picker = seed
-            st.query_params.clear()
-            st.rerun()
 
     st.markdown("<h3 style='text-align:center;'>👤 Επιλογή Avatar</h3>", unsafe_allow_html=True)
     st.caption(f"Πάτα ένα avatar για να το επιλέξεις — {n_selected} παίκτες έχουν επιλέξει")
 
-    # ===== NAME INPUT αν κάποιος μόλις επέλεξε avatar =====
+    # ===== NAME INPUT =====
     if st.session_state.current_picker:
         seed = st.session_state.current_picker
         st.markdown(f"""
@@ -236,7 +227,7 @@ elif st.session_state.game is None:
 
         col_name, col_ok, col_cancel = st.columns([3, 1, 1])
         with col_name:
-            name_input = st.text_input("Το όνομά σου:", placeholder="Γράψε όνομα...", label_visibility="collapsed", key="name_input_field")
+            name_input = st.text_input("Όνομα:", placeholder="Γράψε όνομα...", label_visibility="collapsed", key="name_input_field")
         with col_ok:
             if st.button("✔ OK", use_container_width=True):
                 name = name_input.strip() if name_input else ""
@@ -256,127 +247,41 @@ elif st.session_state.game is None:
         st.divider()
 
     # ===== AVATAR GRID =====
-    import json as _json
-    seeds_json = _json.dumps(AVATAR_SEEDS)
-    selected_json = _json.dumps(list(taken_seeds))
-    selected_names_json = _json.dumps(selected)
+    cols_per_row = 5
+    rows = [AVATAR_SEEDS[i:i+cols_per_row] for i in range(0, len(AVATAR_SEEDS), cols_per_row)]
 
-    avatar_grid_html = f"""
-    <style>
-      body {{ margin:0; font-family:'Segoe UI',sans-serif; background:transparent; }}
-      .avatar-grid {{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        justify-content: center;
-        padding: 10px 0 20px;
-      }}
-      .avatar-card {{
-        width: 100px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        cursor: pointer;
-        border-radius: 16px;
-        padding: 10px 8px 8px;
-        border: 2px solid transparent;
-        background: rgba(255,255,255,0.06);
-        transition: all 0.2s ease;
-        position: relative;
-      }}
-      .avatar-card:hover:not(.taken) {{
-        border-color: rgba(78,205,196,0.7);
-        background: rgba(78,205,196,0.12);
-        transform: translateY(-3px);
-      }}
-      .avatar-card.taken {{
-        opacity: 0.45;
-        cursor: not-allowed;
-        pointer-events: none;
-        border-color: rgba(255,255,255,0.1);
-      }}
-      .avatar-card img {{
-        width: 68px;
-        height: 68px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.1);
-      }}
-      .avatar-name {{
-        font-size: 11px;
-        color: #4ecdc4;
-        font-weight: 700;
-        text-align: center;
-        margin-top: 5px;
-        max-width: 90px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }}
-      .check-badge {{
-        position: absolute;
-        top: 6px; right: 6px;
-        background: #4ecdc4;
-        color: #0f0c29;
-        border-radius: 50%;
-        width: 20px; height: 20px;
-        font-size: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 900;
-      }}
-    </style>
-
-    <div class="avatar-grid" id="avatarGrid"></div>
-
-    <script>
-      const seeds = {seeds_json};
-      const takenSeeds = {selected_json};
-      const selectedNames = {selected_names_json};
-      const grid = document.getElementById("avatarGrid");
-
-      seeds.forEach(seed => {{
-        const isTaken = takenSeeds.includes(seed);
-        const name = selectedNames[seed] || "";
-        const card = document.createElement("div");
-        card.className = "avatar-card" + (isTaken ? " taken" : "");
-
-        card.innerHTML = `
-          ${{isTaken ? '<div class="check-badge">✓</div>' : ''}}
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${{seed}}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf" />
-          ${{isTaken ? `<div class="avatar-name">${{name}}</div>` : ''}}
-        `;
-
-        if (!isTaken) {{
-          card.addEventListener("click", () => {{
-            const url = new URL(window.parent.location.href);
-            url.searchParams.set("pick", seed);
-            window.parent.location.href = url.toString();
-          }});
-        }}
-
-        grid.appendChild(card);
-      }});
-    </script>
-    """
-
-    rows = (len(AVATAR_SEEDS) + 4) // 5
-    grid_height = rows * 130 + 40
-    components.html(avatar_grid_html, height=grid_height, scrolling=False)
+    for row in rows:
+        cols = st.columns(cols_per_row)
+        for j, seed in enumerate(row):
+            with cols[j]:
+                is_taken = seed in taken_seeds
+                name_label = selected.get(seed, "")
+                opacity = "0.4" if is_taken else "1"
+                border = "3px solid #4ecdc4" if is_taken else "2px solid rgba(255,255,255,0.15)"
+                st.markdown(f"""
+                <div style='text-align:center; opacity:{opacity}; margin-bottom:4px;'>
+                  <img src='{avatar_url(seed)}' width='64'
+                       style='border-radius:50%; border:{border}; display:block; margin:0 auto;'/>
+                  {'<div style="font-size:10px;color:#4ecdc4;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✓ ' + name_label + '</div>' if is_taken else '<div style="height:16px;"></div>'}
+                </div>
+                """, unsafe_allow_html=True)
+                if not is_taken:
+                    if st.button("＋", key=f"pick_{seed}", use_container_width=True):
+                        st.session_state.current_picker = seed
+                        st.rerun()
 
     st.divider()
 
-    # ===== SELECTED PLAYERS LIST =====
+    # ===== SELECTED PLAYERS =====
     if selected:
         st.markdown(f"**🎮 Παίκτες ({n_selected}/20):**")
-        cols2 = st.columns(4)
-        items = list(selected.items())
-        for i, (seed, name) in enumerate(items):
-            with cols2[i % 4]:
+        cols2 = st.columns(5)
+        for i, (seed, name) in enumerate(selected.items()):
+            with cols2[i % 5]:
                 st.markdown(f"""
-                <div style='text-align:center; margin-bottom:8px;'>
-                  <img src='{avatar_url(seed)}' width='48' style='border-radius:50%;'/>
-                  <div style='font-size:12px; color:#fff; margin-top:4px;'>{name}</div>
+                <div style='text-align:center; margin-bottom:6px;'>
+                  <img src='{avatar_url(seed)}' width='52' style='border-radius:50%;'/>
+                  <div style='font-size:11px; color:#fff; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>{name}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 if st.button("✖", key=f"rem_{seed}", use_container_width=True):
