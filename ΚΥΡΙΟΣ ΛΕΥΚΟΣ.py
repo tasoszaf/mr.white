@@ -25,7 +25,7 @@ st.markdown("""
     header {visibility: hidden;}
     h1 {
         text-align: center;
-        font-size: 3.5rem !important;
+        font-size: 2.5rem !important;
         font-weight: 900 !important;
         background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffe66d);
         -webkit-background-clip: text;
@@ -44,9 +44,10 @@ st.markdown("""
         border-radius: 12px !important;
         color: white !important;
         font-weight: 600 !important;
-        padding: 0.6rem 1.2rem !important;
+        padding: 0.4rem 0.8rem !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 4px 15px rgba(102,126,234,0.4) !important;
+        font-size: 0.85rem !important;
     }
     .stButton > button:hover {
         transform: translateY(-2px) !important;
@@ -55,14 +56,19 @@ st.markdown("""
     .stButton > button[kind="primary"] {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
         box-shadow: 0 4px 15px rgba(245,87,108,0.4) !important;
+        font-size: 1rem !important;
+        padding: 0.6rem 1.2rem !important;
     }
     .stTextInput > div > div > input {
-        background: rgba(255,255,255,0.1) !important;
-        border: 2px solid rgba(78,205,196,0.3) !important;
+        background: rgba(255,255,255,0.95) !important;
+        border: 2px solid rgba(78,205,196,0.5) !important;
         border-radius: 12px !important;
-        color: white !important;
-        padding: 0.8rem !important;
+        color: #000000 !important;
+        padding: 0.6rem 1rem !important;
         font-size: 1rem !important;
+    }
+    .stTextInput > div > div > input::placeholder {
+        color: #888 !important;
     }
     .stSelectbox > div > div {
         background: rgba(255,255,255,0.1) !important;
@@ -71,7 +77,7 @@ st.markdown("""
     }
     hr {
         border-color: rgba(78,205,196,0.2) !important;
-        margin: 2rem 0 !important;
+        margin: 1.5rem 0 !important;
     }
     .stAlert {
         background: rgba(255,255,255,0.05) !important;
@@ -79,6 +85,9 @@ st.markdown("""
         border-left: 4px solid #4ecdc4 !important;
     }
     .stMarkdown { color: #e0e0e0; }
+    [data-testid="InputInstructions"] {
+        display: none !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -196,9 +205,9 @@ if st.session_state.finished:
     winner = st.session_state.winner
     st.divider()
     if winner == "🟡 UNDERCOVER":
-        st.markdown("<h2 style='text-align:center;font-size:2.5rem;'>🟡⚪ Νίκησαν οι Undercover & Mr. White!</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center;'>🟡⚪ Νίκησαν οι Undercover & Mr. White!</h2>", unsafe_allow_html=True)
     elif winner == "🟢 ΠΟΛΙΤΕΣ":
-        st.markdown("<h2 style='text-align:center;font-size:2.5rem;'>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center;'>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
     st.divider()
     if st.button("🔄 Νέο Παιχνίδι", type="primary", use_container_width=True):
         reset_game()
@@ -212,29 +221,29 @@ elif st.session_state.game is None:
     n_selected = len(selected)
 
     st.markdown("<h3 style='text-align:center;'>👤 Επιλογή Avatar</h3>", unsafe_allow_html=True)
-    st.caption(f"Πάτα ένα avatar για να το επιλέξεις — {n_selected} παίκτες έχουν επιλέξει")
+    st.caption(f"Πάτα ＋ κάτω από ένα avatar — {n_selected} παίκτες έχουν επιλέξει")
 
     # ===== NAME INPUT =====
     if st.session_state.current_picker:
         seed = st.session_state.current_picker
         st.markdown(f"""
-        <div style='text-align:center; padding:1rem; background:rgba(78,205,196,0.15);
-             border-radius:16px; margin-bottom:1rem; border:2px solid rgba(78,205,196,0.4);'>
-            <img src='{avatar_url(seed)}' width='80' style='border-radius:50%; margin-bottom:8px;'/>
-            <p style='margin:0; font-size:1rem; color:#4ecdc4;'>Επέλεξες αυτό το avatar!</p>
+        <div style='text-align:center; padding:0.75rem; background:rgba(78,205,196,0.15);
+             border-radius:16px; margin-bottom:0.75rem; border:2px solid rgba(78,205,196,0.4);'>
+            <img src='{avatar_url(seed)}' width='60' style='border-radius:50%; margin-bottom:6px;'/>
+            <p style='margin:0; font-size:0.9rem; color:#4ecdc4;'>Γράψε το όνομά σου:</p>
         </div>
         """, unsafe_allow_html=True)
 
         col_name, col_ok, col_cancel = st.columns([3, 1, 1])
         with col_name:
-            name_input = st.text_input("Όνομα:", placeholder="Γράψε όνομα...", label_visibility="collapsed", key="name_input_field")
+            name_input = st.text_input("Όνομα:", placeholder="Όνομα...", label_visibility="collapsed", key="name_input_field")
         with col_ok:
-            if st.button("✔ OK", use_container_width=True):
+            if st.button("✔", use_container_width=True):
                 name = name_input.strip() if name_input else ""
                 if not name:
                     st.warning("Γράψε όνομα!")
                 elif name in list(selected.values()):
-                    st.warning("Αυτό το όνομα υπάρχει ήδη!")
+                    st.warning("Υπάρχει ήδη!")
                 else:
                     st.session_state.selected_avatars[seed] = name
                     st.session_state.current_picker = None
@@ -246,8 +255,8 @@ elif st.session_state.game is None:
 
         st.divider()
 
-    # ===== AVATAR GRID =====
-    cols_per_row = 5
+    # ===== AVATAR GRID — 4 ανά γραμμή, μικρά =====
+    cols_per_row = 4
     rows = [AVATAR_SEEDS[i:i+cols_per_row] for i in range(0, len(AVATAR_SEEDS), cols_per_row)]
 
     for row in rows:
@@ -259,10 +268,10 @@ elif st.session_state.game is None:
                 opacity = "0.4" if is_taken else "1"
                 border = "3px solid #4ecdc4" if is_taken else "2px solid rgba(255,255,255,0.15)"
                 st.markdown(f"""
-                <div style='text-align:center; opacity:{opacity}; margin-bottom:4px;'>
-                  <img src='{avatar_url(seed)}' width='64'
+                <div style='text-align:center; opacity:{opacity}; margin-bottom:2px;'>
+                  <img src='{avatar_url(seed)}' width='48'
                        style='border-radius:50%; border:{border}; display:block; margin:0 auto;'/>
-                  {'<div style="font-size:10px;color:#4ecdc4;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✓ ' + name_label + '</div>' if is_taken else '<div style="height:16px;"></div>'}
+                  {'<div style="font-size:9px;color:#4ecdc4;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✓ ' + name_label + '</div>' if is_taken else '<div style="height:14px;"></div>'}
                 </div>
                 """, unsafe_allow_html=True)
                 if not is_taken:
@@ -279,9 +288,9 @@ elif st.session_state.game is None:
         for i, (seed, name) in enumerate(selected.items()):
             with cols2[i % 5]:
                 st.markdown(f"""
-                <div style='text-align:center; margin-bottom:6px;'>
-                  <img src='{avatar_url(seed)}' width='52' style='border-radius:50%;'/>
-                  <div style='font-size:11px; color:#fff; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>{name}</div>
+                <div style='text-align:center; margin-bottom:4px;'>
+                  <img src='{avatar_url(seed)}' width='44' style='border-radius:50%;'/>
+                  <div style='font-size:10px; color:#fff; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>{name}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 if st.button("✖", key=f"rem_{seed}", use_container_width=True):
@@ -348,9 +357,9 @@ else:
     num_players = len(players)
     cards_per_row = 3
     num_rows = (num_players + cards_per_row - 1) // cards_per_row
-    card_height = 260
-    gap = 20
-    padding = 60
+    card_height = 240
+    gap = 16
+    padding = 50
     total_height = num_rows * card_height + (num_rows - 1) * gap + padding
 
     cards_html = f"""
@@ -361,11 +370,11 @@ else:
         flex-wrap: wrap;
         gap: {gap}px;
         justify-content: center;
-        padding: 10px 0;
+        padding: 8px 0;
         overflow: visible;
       }}
       .card-wrap {{
-        width: 160px;
+        width: 140px;
         height: {card_height}px;
         perspective: 1000px;
         cursor: pointer;
@@ -385,17 +394,17 @@ else:
         position: absolute;
         top: 0; left: 0;
         width: 100%; height: 100%;
-        border-radius: 16px;
+        border-radius: 14px;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 14px;
+        padding: 12px;
         box-sizing: border-box;
         text-align: center;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 24px rgba(0,0,0,0.3);
       }}
       .card-front {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -406,50 +415,50 @@ else:
         color: #fff;
       }}
       .card-front .avatar-img {{
-        width: 72px;
-        height: 72px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
-        margin-bottom: 8px;
+        margin-bottom: 7px;
         background: rgba(255,255,255,0.15);
         border: 2px solid rgba(255,255,255,0.3);
       }}
       .card-front .card-name {{
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 800;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
         word-break: break-word;
       }}
       .card-front .tap-hint {{
-        font-size: 11px;
+        font-size: 10px;
         color: rgba(255,255,255,0.75);
         line-height: 1.4;
       }}
       .card-back .role-label {{
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 800;
-        letter-spacing: 2px;
-        margin-bottom: 10px;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
       }}
       .card-back .word-label {{
         font-weight: 900;
         letter-spacing: 2px;
-        margin-bottom: 8px;
-        width: 128px;
+        margin-bottom: 6px;
+        width: 116px;
         box-sizing: border-box;
         white-space: nowrap;
         text-align: center;
-        font-size: 22px;
+        font-size: 20px;
       }}
       .card-back .word-caption {{
-        font-size: 10px;
+        font-size: 9px;
         opacity: 0.85;
         text-transform: uppercase;
         letter-spacing: 1px;
         margin-bottom: 4px;
       }}
       .card-back .flip-back {{
-        font-size: 10px;
+        font-size: 9px;
         opacity: 0.65;
       }}
     </style>
@@ -467,7 +476,7 @@ else:
         const wordHtml = c.back_word
           ? `<div class="word-caption">Η λέξη σου</div>
              <div class="word-label">${{c.back_word}}</div>`
-          : `<div class="word-caption" style="font-size:12px;opacity:0.8;">Δεν έχεις λέξη</div>`;
+          : `<div class="word-caption" style="font-size:11px;opacity:0.8;">Δεν έχεις λέξη</div>`;
 
         const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${{c.seed}}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
@@ -494,7 +503,7 @@ else:
 
         const wordEl = wrap.querySelector(".word-label");
         if (wordEl) {{
-          let size = 22;
+          let size = 20;
           while (wordEl.scrollWidth > wordEl.clientWidth && size > 8) {{
             size--;
             wordEl.style.fontSize = size + "px";
@@ -521,12 +530,12 @@ else:
         }
         color = role_color.get(msg["role"], "#555")
         st.markdown(f"""
-        <div style='text-align:center; padding:2rem; background:{color}33;
+        <div style='text-align:center; padding:1.5rem; background:{color}33;
              border-radius:16px; margin:1rem 0; border:2px solid {color}88;'>
-            <img src='{avatar_url(msg["seed"])}' width='80' style='border-radius:50%; margin-bottom:10px;'/>
-            <div style='font-size:2rem; margin-bottom:0.25rem;'>💀</div>
-            <h3 style='margin:0; color:#fff; font-size:1.8rem;'>{msg["name"]}</h3>
-            <p style='margin:0.5rem 0 0 0; font-size:1.3rem; color:#fff;'>{msg["role"]}</p>
+            <img src='{avatar_url(msg["seed"])}' width='70' style='border-radius:50%; margin-bottom:8px;'/>
+            <div style='font-size:1.8rem; margin-bottom:0.2rem;'>💀</div>
+            <h3 style='margin:0; color:#fff; font-size:1.6rem;'>{msg["name"]}</h3>
+            <p style='margin:0.4rem 0 0 0; font-size:1.1rem; color:#fff;'>{msg["role"]}</p>
         </div>
         """, unsafe_allow_html=True)
         time.sleep(5)
@@ -536,7 +545,7 @@ else:
     names = [p["name"] for p in players]
     idx = st.selectbox("Ποιος φεύγει;", range(len(names)), format_func=lambda i: names[i])
 
-    if st.button("🔥 Remove Player"):
+    if st.button("🔥 Remove Player", use_container_width=True):
         removed = players[idx]
         role_labels = {
             "mr_white": "⚪ Mr. White",
@@ -574,22 +583,22 @@ else:
     if st.session_state.mr_white_guess_mode:
         removed = st.session_state.last_out
         st.markdown(f"""
-        <div style='text-align:center; padding:2rem; background:linear-gradient(135deg,rgba(192,57,43,0.3),rgba(231,76,60,0.3));
-             border-radius:16px; margin:2rem 0; border:2px solid rgba(192,57,43,0.5);'>
-            <h2 style='margin:0 0 1rem 0; color:#fff;'>⚪ ΤΕΛΕΥΤΑΙΑ ΕΥΚΑΙΡΙΑ!</h2>
-            <p style='font-size:1.2rem; opacity:0.9;'>Ο <strong>{removed['name']}</strong> ήταν Mr. White!</p>
-            <p style='opacity:0.8;'>Μπορεί να μαντέψει τη λέξη των πολιτών;</p>
+        <div style='text-align:center; padding:1.5rem; background:linear-gradient(135deg,rgba(192,57,43,0.3),rgba(231,76,60,0.3));
+             border-radius:16px; margin:1.5rem 0; border:2px solid rgba(192,57,43,0.5);'>
+            <h2 style='margin:0 0 0.75rem 0; color:#fff; font-size:1.3rem;'>⚪ ΤΕΛΕΥΤΑΙΑ ΕΥΚΑΙΡΙΑ!</h2>
+            <p style='font-size:1rem; opacity:0.9; margin:0;'>Ο <strong>{removed['name']}</strong> ήταν Mr. White!</p>
+            <p style='opacity:0.8; font-size:0.9rem; margin:0.3rem 0 0 0;'>Μπορεί να μαντέψει τη λέξη των πολιτών;</p>
         </div>
         """, unsafe_allow_html=True)
 
         guess = st.text_input("Μάντεψε τη λέξη:")
 
-        if st.button("✔ Check Guess"):
+        if st.button("✔ Check Guess", use_container_width=True):
             if guess.strip().upper() == word[0].upper():
                 st.session_state.finished = True
                 st.session_state.winner = "🟡 UNDERCOVER"
             else:
-                st.error(f"❌ Λάθος μαντεψιά: «{guess}»")
+                st.error(f"❌ Λάθος: «{guess}»")
                 winner = check_winner(game["players"])
                 if winner == "UNDERCOVER":
                     st.session_state.finished = True
