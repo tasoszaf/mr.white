@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import random
 import json
 import os
+import time
 
 # ================= PAGE CONFIG =================
 st.set_page_config(
@@ -153,6 +154,8 @@ if "winner" not in st.session_state:
     st.session_state.winner = None
 if "selected_players" not in st.session_state:
     st.session_state.selected_players = []
+if "elimination_msg" not in st.session_state:
+    st.session_state.elimination_msg = None
 
 # ================= HELPERS =================
 def assign_roles(players):
@@ -170,9 +173,9 @@ def check_winner(players):
     undercovers = roles.count("undercover")
     mr_whites   = roles.count("mr_white")
     if civilians <= 1 and (undercovers + mr_whites) > 0:
-        return "INFILTRATORS"
+        return "UNDERCOVER"
     if undercovers == 0 and mr_whites == 0:
-        return "CIVILIANS"
+        return "ΠΟΛΙΤΕΣ"
     return None
 
 def reset_game():
@@ -184,6 +187,7 @@ def reset_game():
     st.session_state.finished = False
     st.session_state.winner = None
     st.session_state.selected_players = []
+    st.session_state.elimination_msg = None
     if os.path.exists(GAME_FILE):
         os.remove(GAME_FILE)
 
@@ -196,11 +200,9 @@ if st.session_state.finished:
     winner = st.session_state.winner
 
     st.divider()
-    if winner == "⚪ MR WHITE":
-        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>⚪ Νίκησε οι Mr. White/Undercovers!</h2>", unsafe_allow_html=True)
-    elif winner == "🟡 INFILTRATORS":
-        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟡 Νίκησαν οι Mr. White/Undercovers!</h2>", unsafe_allow_html=True)
-    elif winner == "🟢 CIVILIANS":
+    if winner == "🟡 UNDERCOVER":
+        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟡⚪ Νίκησαν οι Undercover & Mr. White!</h2>", unsafe_allow_html=True)
+    elif winner == "🟢 ΠΟΛΙΤΕΣ":
         st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
     st.divider()
 
@@ -302,30 +304,25 @@ else:
             back_role = "⚪ MR WHITE"
             back_word = ""
             back_color = "#c0392b"
-            back_text_color = "#fff"
         elif p["role"] == "undercover":
             back_role = "🟡 UNDERCOVER"
             back_word = word[1]
             back_color = "#d68910"
-            back_text_color = "#fff"
         else:
             back_role = "🟢 ΠΟΛΙΤΗΣ"
             back_word = word[0]
             back_color = "#1e8449"
-            back_text_color = "#fff"
 
         cards_data.append({
             "name": p["name"],
             "back_role": back_role,
             "back_word": back_word,
             "back_color": back_color,
-            "back_text_color": back_text_color,
         })
 
     import json as _json
     cards_json = _json.dumps(cards_data, ensure_ascii=False)
 
-    # Calculate height based on number of players
     num_players = len(players)
     cards_per_row = 3
     num_rows = (num_players + cards_per_row - 1) // cards_per_row
@@ -479,6 +476,27 @@ else:
     st.markdown("<h3 style='text-align: center;'>⚔️ ΦΑΣΗ ΨΗΦΟΦΟΡΙΑΣ</h3>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; opacity: 0.8;'>Συζητήστε και αποφασίστε ποιος φεύγει</p>", unsafe_allow_html=True)
 
+    # ================= ELIMINATION BANNER =================
+    if st.session_state.elimination_msg:
+        msg = st.session_state.elimination_msg
+        role_color = {
+            "⚪ Mr. White": "#c0392b",
+            "🟡 Undercover": "#d68910",
+            "🟢 Πολίτης": "#1e8449"
+        }
+        color = role_color.get(msg["role"], "#555")
+        st.markdown(f"""
+        <div style='text-align: center; padding: 2rem; background: {color}33;
+             border-radius: 16px; margin: 1rem 0; border: 2px solid {color}88;'>
+            <div style='font-size: 3rem; margin-bottom: 0.5rem;'>💀</div>
+            <h3 style='margin: 0; color: #fff; font-size: 1.8rem;'>{msg["name"]}</h3>
+            <p style='margin: 0.5rem 0 0 0; font-size: 1.3rem; color: #fff;'>{msg["role"]}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        time.sleep(5)
+        st.session_state.elimination_msg = None
+        st.rerun()
+
     names = [p["name"] for p in players]
     idx = st.selectbox("Ποιος φεύγει;", range(len(names)), format_func=lambda i: names[i])
 
@@ -491,8 +509,7 @@ else:
             "πολίτης": "🟢 Πολίτης"
         }
         role_display = role_labels.get(removed["role"], removed["role"])
-
-        st.markdown(f"<div style='text-align: center; padding: 1rem; background: rgba(255,107,107,0.2); border-radius: 12px; margin: 1rem 0;'><h3 style='margin: 0;'>💀 {removed['name']} ήταν {role_display}</h3></div>", unsafe_allow_html=True)
+        st.session_state.elimination_msg = {"name": removed["name"], "role": role_display}
 
         players = [p for p in players if p["name"] != removed["name"]]
         game["players"] = players
@@ -504,12 +521,12 @@ else:
         if removed["role"] == "mr_white":
             st.session_state.last_out = removed
             st.session_state.mr_white_guess_mode = True
-        elif winner == "INFILTRATORS":
+        elif winner == "UNDERCOVER":
             st.session_state.finished = True
-            st.session_state.winner = "🟡 INFILTRATORS"
-        elif winner == "CIVILIANS":
+            st.session_state.winner = "🟡 UNDERCOVER"
+        elif winner == "ΠΟΛΙΤΕΣ":
             st.session_state.finished = True
-            st.session_state.winner = "🟢 CIVILIANS"
+            st.session_state.winner = "🟢 ΠΟΛΙΤΕΣ"
         else:
             st.session_state.last_out = None
 
@@ -531,16 +548,16 @@ else:
         if st.button("✔ Check Guess"):
             if guess.strip().upper() == word[0].upper():
                 st.session_state.finished = True
-                st.session_state.winner = "⚪ MR WHITE"
+                st.session_state.winner = "🟡 UNDERCOVER"
             else:
                 st.error(f"❌ Λάθος μαντεψιά: «{guess}»")
                 winner = check_winner(game["players"])
-                if winner == "INFILTRATORS":
+                if winner == "UNDERCOVER":
                     st.session_state.finished = True
-                    st.session_state.winner = "🟡 INFILTRATORS"
-                elif winner == "CIVILIANS":
+                    st.session_state.winner = "🟡 UNDERCOVER"
+                elif winner == "ΠΟΛΙΤΕΣ":
                     st.session_state.finished = True
-                    st.session_state.winner = "🟢 CIVILIANS"
+                    st.session_state.winner = "🟢 ΠΟΛΙΤΕΣ"
 
             st.session_state.mr_white_guess_mode = False
             st.rerun()
