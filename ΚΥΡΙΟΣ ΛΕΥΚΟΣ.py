@@ -4,6 +4,137 @@ import random
 import json
 import os
 
+# ================= PAGE CONFIG =================
+st.set_page_config(
+    page_title="ΚΥΡΙΟΣ ΛΕΥΚΟΣ",
+    page_icon="🎭",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
+
+# ================= CUSTOM CSS =================
+st.markdown("""
+<style>
+    /* Dark Theme */
+    .stApp {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        color: #ffffff;
+    }
+    
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Custom title */
+    h1 {
+        text-align: center;
+        font-size: 3.5rem !important;
+        font-weight: 900 !important;
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffe66d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 30px rgba(255,107,107,0.3);
+        margin-bottom: 0.5rem !important;
+        letter-spacing: 3px;
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+        from { filter: drop-shadow(0 0 10px rgba(255,107,107,0.5)); }
+        to { filter: drop-shadow(0 0 20px rgba(78,205,196,0.8)); }
+    }
+    
+    /* Subtitles */
+    h2, h3 {
+        color: #4ecdc4 !important;
+        font-weight: 700 !important;
+        text-shadow: 0 0 10px rgba(78,205,196,0.3);
+    }
+    
+    /* Cards and containers */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 0.6rem 1.2rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.4) !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(102,126,234,0.6) !important;
+    }
+    
+    /* Primary button */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+        box-shadow: 0 4px 15px rgba(245,87,108,0.4) !important;
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        box-shadow: 0 6px 20px rgba(245,87,108,0.6) !important;
+    }
+    
+    /* Text input */
+    .stTextInput > div > div > input {
+        background: rgba(255,255,255,0.1) !important;
+        border: 2px solid rgba(78,205,196,0.3) !important;
+        border-radius: 12px !important;
+        color: white !important;
+        padding: 0.8rem !important;
+        font-size: 1rem !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: #4ecdc4 !important;
+        box-shadow: 0 0 0 2px rgba(78,205,196,0.2) !important;
+    }
+    
+    /* Select box */
+    .stSelectbox > div > div {
+        background: rgba(255,255,255,0.1) !important;
+        border: 2px solid rgba(78,205,196,0.3) !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: rgba(78,205,196,0.2) !important;
+        margin: 2rem 0 !important;
+    }
+    
+    /* Info/Warning/Success boxes */
+    .stAlert {
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 12px !important;
+        border-left: 4px solid #4ecdc4 !important;
+    }
+    
+    /* Markdown text */
+    .stMarkdown {
+        color: #e0e0e0;
+    }
+    
+    /* Player list styling */
+    div[data-testid="column"] {
+        background: rgba(255,255,255,0.03);
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin: 0.3rem 0;
+        transition: all 0.2s ease;
+    }
+    
+    div[data-testid="column"]:hover {
+        background: rgba(255,255,255,0.08);
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # ================= FILES =================
 
 PLAYERS_FILE = "players.json"
@@ -130,7 +261,7 @@ def reset_game():
 
 # ================= UI =================
 
-st.title("ΚΥΡΙΟΣ ΛΕΥΚΟΣ")
+st.markdown("<h1>🎭 ΚΥΡΙΟΣ ΛΕΥΚΟΣ</h1>", unsafe_allow_html=True)
 
 # ================= END SCREEN =================
 
@@ -139,14 +270,31 @@ if st.session_state.finished:
     game = st.session_state.game
     winner = st.session_state.winner
 
+    # Victory sound and confetti effect
+    victory_html = """
+    <script>
+        // Play victory sound
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiM0fPTgjMGHm7A7+OZURE');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+    </script>
+    <style>
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+    </style>
+    """
+    components.html(victory_html, height=0)
+
     st.divider()
 
     if winner == "⚪ MR WHITE":
-        st.error("## ⚪ Νίκησε ο Mr. White!")
+        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>⚪ Νίκησε ο Mr. White!</h2>", unsafe_allow_html=True)
     elif winner == "🟡 INFILTRATORS":
-        st.warning("## 🟡 Νίκησαν οι Undercovers!")
+        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟡 Νίκησαν οι Undercovers!</h2>", unsafe_allow_html=True)
     elif winner == "🟢 CIVILIANS":
-        st.success("## 🟢 Νίκησαν οι Πολίτες!")
+        st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
         
     st.divider()
 
@@ -254,8 +402,8 @@ else:
     players = game["players"]
     word = game["word"]
 
-    st.subheader("ΠΑΙΚΤΕΣ")
-    st.caption("Πάτα την κάρτα σου για να δεις τον ρόλο σου — μόνος/η σου!")
+    st.markdown("<h3 style='text-align: center;'>🎮 ΠΑΙΚΤΕΣ</h3>", unsafe_allow_html=True)
+    st.caption("👀 Πάτα την κάρτα σου για να δεις τον ρόλο σου — μόνος/η σου!")
 
     # Build card data for HTML
     cards_data = []
@@ -289,27 +437,31 @@ else:
 
     cards_html = f"""
     <style>
-      body {{ margin: 0; font-family: sans-serif; background: transparent; }}
+      body {{ margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: transparent; }}
       .cards-grid {{
         display: flex;
         flex-wrap: wrap;
-        gap: 16px;
+        gap: 20px;
         justify-content: center;
-        padding: 8px 0 16px 0;
+        padding: 20px 0;
       }}
       .card-wrap {{
-        width: 150px;
-        height: 210px;
+        width: 160px;
+        height: 220px;
         perspective: 1000px;
         cursor: pointer;
+        transition: transform 0.2s ease;
+      }}
+      .card-wrap:hover {{
+        transform: scale(1.05);
       }}
       .card-inner {{
         position: relative;
         width: 100%;
         height: 100%;
         transform-style: preserve-3d;
-        transition: transform 0.6s cubic-bezier(.4,2,.6,1);
-        border-radius: 14px;
+        transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+        border-radius: 16px;
       }}
       .card-wrap.flipped .card-inner {{
         transform: rotateY(180deg);
@@ -318,78 +470,127 @@ else:
         position: absolute;
         width: 100%;
         height: 100%;
-        border-radius: 14px;
+        border-radius: 16px;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 12px;
+        padding: 16px;
         box-sizing: border-box;
         text-align: center;
-        box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       }}
       .card-front {{
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
-        border: 2px solid #e94560;
+        border: 3px solid rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
+      }}
+      .card-front::before {{
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        transform: rotate(45deg);
+        animation: shine 3s infinite;
+      }}
+      @keyframes shine {{
+        0% {{ transform: translateX(-100%) translateY(-100%) rotate(45deg); }}
+        100% {{ transform: translateX(100%) translateY(100%) rotate(45deg); }}
       }}
       .card-front .card-icon {{
-        font-size: 36px;
-        margin-bottom: 10px;
+        font-size: 48px;
+        margin-bottom: 12px;
+        animation: float 3s ease-in-out infinite;
+        filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+      }}
+      @keyframes float {{
+        0%, 100% {{ transform: translateY(0px); }}
+        50% {{ transform: translateY(-10px); }}
       }}
       .card-front .card-name {{
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 1px;
         margin-bottom: 12px;
         word-break: break-word;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }}
       .card-front .tap-hint {{
-        font-size: 11px;
-        color: #aab;
-        margin-top: 6px;
+        font-size: 12px;
+        color: rgba(255,255,255,0.8);
+        margin-top: 8px;
         line-height: 1.4;
+        animation: pulse-text 2s ease-in-out infinite;
+      }}
+      @keyframes pulse-text {{
+        0%, 100% {{ opacity: 0.8; }}
+        50% {{ opacity: 1; }}
       }}
       .card-back {{
         transform: rotateY(180deg);
         color: #fff;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
+        border: 3px solid rgba(255,255,255,0.3);
       }}
       .card-back .role-label {{
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: 1px;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
       }}
       .card-back .word-label {{
-        font-size: 22px;
-        font-weight: 800;
-        background: rgba(255,255,255,0.18);
-        border-radius: 8px;
-        padding: 6px 14px;
+        font-size: 26px;
+        font-weight: 900;
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 10px 20px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255,255,255,0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        letter-spacing: 2px;
       }}
       .card-back .word-caption {{
         font-size: 11px;
-        opacity: 0.75;
+        opacity: 0.85;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }}
       .card-back .flip-back {{
         margin-top: 8px;
         font-size: 11px;
-        opacity: 0.6;
+        opacity: 0.7;
+        animation: pulse-text 2s ease-in-out infinite;
       }}
       .pulse-ring {{
-        width: 10px; height: 10px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
-        background: #e94560;
-        animation: pulse 1.5s infinite;
-        margin-bottom: 4px;
+        background: #fff;
+        animation: pulse-ring 2s infinite;
+        margin-bottom: 6px;
+        box-shadow: 0 0 10px rgba(255,255,255,0.8);
       }}
-      @keyframes pulse {{
-        0% {{ box-shadow: 0 0 0 0 rgba(233,69,96,0.5); }}
-        70% {{ box-shadow: 0 0 0 8px rgba(233,69,96,0); }}
-        100% {{ box-shadow: 0 0 0 0 rgba(233,69,96,0); }}
+      @keyframes pulse-ring {{
+        0% {{ 
+          box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+          transform: scale(1);
+        }}
+        50% {{
+          box-shadow: 0 0 0 10px rgba(255,255,255,0);
+          transform: scale(1.1);
+        }}
+        100% {{ 
+          box-shadow: 0 0 0 0 rgba(255,255,255,0);
+          transform: scale(1);
+        }}
       }}
     </style>
 
@@ -399,6 +600,13 @@ else:
       const cards = {cards_json};
       const grid = document.getElementById("cardsGrid");
 
+      // Sound effects
+      function playFlip() {{
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiM0fPTgjMGHm7A7+OZURE');
+        audio.volume = 0.3;
+        audio.play().catch(() => {{}});
+      }}
+
       cards.forEach((c, i) => {{
         const wrap = document.createElement("div");
         wrap.className = "card-wrap";
@@ -407,7 +615,7 @@ else:
         const wordHtml = c.back_word
           ? `<div class="word-caption">Η λέξη σου</div>
              <div class="word-label">${{c.back_word}}</div>`
-          : `<div class="word-caption" style="font-size:12px;opacity:0.7;">Δεν έχεις λέξη</div>`;
+          : `<div class="word-caption" style="font-size:13px;opacity:0.8;">Δεν έχεις λέξη</div>`;
 
         wrap.innerHTML = `
           <div class="card-inner">
@@ -415,18 +623,19 @@ else:
               <div class="pulse-ring"></div>
               <div class="card-icon">🎭</div>
               <div class="card-name">${{c.name}}</div>
-              <div class="tap-hint">Πάτα για να δεις<br>τον ρόλο σου</div>
+              <div class="tap-hint">👆 Πάτα για να δεις<br>τον ρόλο σου</div>
             </div>
             <div class="card-back" style="background:${{c.back_color}};">
               <div class="role-label">${{c.back_role}}</div>
               ${{wordHtml}}
-              <div class="flip-back">Πάτα για να κρύψεις</div>
+              <div class="flip-back">👆 Πάτα για να κρύψεις</div>
             </div>
           </div>
         `;
 
         wrap.addEventListener("click", () => {{
           wrap.classList.toggle("flipped");
+          playFlip();
         }});
 
         grid.appendChild(wrap);
@@ -439,13 +648,24 @@ else:
     # ================= VOTE =================
 
     st.divider()
-    st.subheader("❌ Vote Phase")
+    st.markdown("<h3 style='text-align: center;'>⚔️ ΦΑΣΗ ΨΗΦΟΦΟΡΙΑΣ</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; opacity: 0.8;'>Συζητήστε και αποφασίστε ποιος φεύγει</p>", unsafe_allow_html=True)
 
     names = [p["name"] for p in players]
     idx = st.selectbox("Ποιος φεύγει;", range(len(names)), format_func=lambda i: names[i])
 
     if st.button("🔥 Remove Player"):
         removed = players[idx]
+        
+        # Elimination sound
+        elimination_sound = """
+        <script>
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiM0fPTgjMGHm7A7+OZURE');
+            audio.volume = 0.4;
+            audio.play().catch(() => {});
+        </script>
+        """
+        components.html(elimination_sound, height=0)
         
         # Show what role was eliminated
         role_labels = {
@@ -455,7 +675,7 @@ else:
         }
         role_display = role_labels.get(removed["role"], removed["role"])
         
-        st.info(f"💀 **{removed['name']}** ήταν {role_display}")
+        st.markdown(f"<div style='text-align: center; padding: 1rem; background: rgba(255,107,107,0.2); border-radius: 12px; margin: 1rem 0;'><h3 style='margin: 0;'>💀 {removed['name']} ήταν {role_display}</h3></div>", unsafe_allow_html=True)
         
         players = [p for p in players if p["name"] != removed["name"]]
         game["players"] = players
@@ -482,7 +702,13 @@ else:
 
     if st.session_state.mr_white_guess_mode:
         removed = st.session_state.last_out
-        st.warning(f"⚪ Ο **{removed['name']}** ήταν Mr. White! Μαντεύει τη λέξη...")
+        st.markdown(f"""
+        <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(192,57,43,0.3), rgba(231,76,60,0.3)); border-radius: 16px; margin: 2rem 0; border: 2px solid rgba(192,57,43,0.5);'>
+            <h2 style='margin: 0 0 1rem 0; color: #fff;'>⚪ ΤΕΛΕΥΤΑΙΑ ΕΥΚΑΙΡΙΑ!</h2>
+            <p style='font-size: 1.2rem; opacity: 0.9;'>Ο <strong>{removed['name']}</strong> ήταν Mr. White!</p>
+            <p style='opacity: 0.8;'>Μπορεί να μαντέψει τη λέξη των πολιτών;</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         guess = st.text_input("Μάντεψε τη λέξη:")
 
