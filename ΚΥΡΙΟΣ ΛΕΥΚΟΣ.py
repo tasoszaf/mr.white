@@ -15,18 +15,13 @@ st.set_page_config(
 # ================= CUSTOM CSS =================
 st.markdown("""
 <style>
-    /* Dark Theme */
     .stApp {
         background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
         color: #ffffff;
     }
-    
-    /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    
-    /* Custom title */
     h1 {
         text-align: center;
         font-size: 3.5rem !important;
@@ -35,25 +30,13 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        text-shadow: 0 0 30px rgba(255,107,107,0.3);
         margin-bottom: 0.5rem !important;
         letter-spacing: 3px;
-        animation: glow 2s ease-in-out infinite alternate;
     }
-    
-    @keyframes glow {
-        from { filter: drop-shadow(0 0 10px rgba(255,107,107,0.5)); }
-        to { filter: drop-shadow(0 0 20px rgba(78,205,196,0.8)); }
-    }
-    
-    /* Subtitles */
     h2, h3 {
         color: #4ecdc4 !important;
         font-weight: 700 !important;
-        text-shadow: 0 0 10px rgba(78,205,196,0.3);
     }
-    
-    /* Cards and containers */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         border: none !important;
@@ -64,23 +47,14 @@ st.markdown("""
         transition: all 0.3s ease !important;
         box-shadow: 0 4px 15px rgba(102,126,234,0.4) !important;
     }
-    
     .stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 6px 20px rgba(102,126,234,0.6) !important;
     }
-    
-    /* Primary button */
     .stButton > button[kind="primary"] {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
         box-shadow: 0 4px 15px rgba(245,87,108,0.4) !important;
     }
-    
-    .stButton > button[kind="primary"]:hover {
-        box-shadow: 0 6px 20px rgba(245,87,108,0.6) !important;
-    }
-    
-    /* Text input */
     .stTextInput > div > div > input {
         background: rgba(255,255,255,0.1) !important;
         border: 2px solid rgba(78,205,196,0.3) !important;
@@ -89,59 +63,29 @@ st.markdown("""
         padding: 0.8rem !important;
         font-size: 1rem !important;
     }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: #4ecdc4 !important;
-        box-shadow: 0 0 0 2px rgba(78,205,196,0.2) !important;
-    }
-    
-    /* Select box */
     .stSelectbox > div > div {
         background: rgba(255,255,255,0.1) !important;
         border: 2px solid rgba(78,205,196,0.3) !important;
         border-radius: 12px !important;
     }
-    
-    /* Divider */
     hr {
         border-color: rgba(78,205,196,0.2) !important;
         margin: 2rem 0 !important;
     }
-    
-    /* Info/Warning/Success boxes */
     .stAlert {
         background: rgba(255,255,255,0.05) !important;
         border-radius: 12px !important;
         border-left: 4px solid #4ecdc4 !important;
     }
-    
-    /* Markdown text */
-    .stMarkdown {
-        color: #e0e0e0;
-    }
-    
-    /* Player list styling */
-    div[data-testid="column"] {
-        background: rgba(255,255,255,0.03);
-        border-radius: 8px;
-        padding: 0.5rem;
-        margin: 0.3rem 0;
-        transition: all 0.2s ease;
-    }
-    
-    div[data-testid="column"]:hover {
-        background: rgba(255,255,255,0.08);
-    }
+    .stMarkdown { color: #e0e0e0; }
 </style>
 """, unsafe_allow_html=True)
 
 # ================= FILES =================
-
 PLAYERS_FILE = "players.json"
 GAME_FILE = "game.json"
 
 # ================= WORDS =================
-
 WORDS = [
 ("ΣΚΥΛΟΣ", "ΚΟΚΑΛΟ"), ("ΓΑΤΑ", "ΠΟΝΤΙΚΙ"), ("ΣΚΥΛΟΣ", "ΛΟΥΡΙ"), ("ΓΑΤΑ", "ΝΙΑΟΥΡΙΣΜΑ"), ("ΠΟΥΛΙ", "ΦΤΕΡΟ"), ("ΨΑΡΙ", "ΝΕΡΟ"), ("ΑΛΟΓΟ", "ΣΤΑΒΛΟΣ"), ("ΑΓΕΛΑΔΑ", "ΓΑΛΑ"), ("ΠΡΟΒΑΤΟ", "ΜΑΛΛΙ"), ("ΚΑΤΣΙΚΙ", "ΦΑΡΜΑ"),
 ("ΘΑΛΑΣΣΑ", "ΚΥΜΑ"), ("ΘΑΛΑΣΣΑ", "ΑΛΑΤΙ"), ("ΛΙΜΝΗ", "ΝΕΡΟ"), ("ΠΟΤΑΜΙ", "ΡΟΗ"), ("ΒΟΥΝΟ", "ΚΟΡΥΦΗ"), ("ΔΑΣΟΣ", "ΔΕΝΤΡΟ"), ("ΔΕΝΤΡΟ", "ΦΥΛΛΟ"), ("ΦΥΛΛΟ", "ΚΛΑΔΙ"), ("ΛΟΥΛΟΥΔΙ", "ΠΕΤΑΛΟ"), ("ΧΟΡΤΑΡΙ", "ΓΗΠΕΔΟ"),
@@ -165,7 +109,6 @@ WORDS = [
 ]
 
 # ================= LOAD / SAVE =================
-
 def load_players():
     if os.path.exists(PLAYERS_FILE):
         try:
@@ -194,46 +137,31 @@ def save_game(game):
         json.dump(game, f, ensure_ascii=False, indent=2)
 
 # ================= INIT =================
-
 if "game" not in st.session_state:
     st.session_state.game = load_game()
-
 if "revealed" not in st.session_state:
     st.session_state.revealed = {}
-
 if "last_out" not in st.session_state:
     st.session_state.last_out = None
-
 if "mr_white_guess_mode" not in st.session_state:
     st.session_state.mr_white_guess_mode = False
-
 if "mr_white_won" not in st.session_state:
     st.session_state.mr_white_won = False
-
 if "finished" not in st.session_state:
     st.session_state.finished = False
-
 if "winner" not in st.session_state:
     st.session_state.winner = None
-
 if "selected_players" not in st.session_state:
     st.session_state.selected_players = []
 
 # ================= HELPERS =================
-
 def assign_roles(players):
     roles = ["mr_white", "undercover"] + ["πολίτης"] * (len(players) - 2)
-
     random.shuffle(players)
     random.shuffle(roles)
-
     assigned = []
     for i, player in enumerate(players):
-        assigned.append({
-            "name": player,
-            "role": roles[i]
-        })
-
+        assigned.append({"name": player, "role": roles[i]})
     return assigned
 
 def check_winner(players):
@@ -260,42 +188,20 @@ def reset_game():
         os.remove(GAME_FILE)
 
 # ================= UI =================
-
 st.markdown("<h1>🎭 ΚΥΡΙΟΣ ΛΕΥΚΟΣ</h1>", unsafe_allow_html=True)
 
 # ================= END SCREEN =================
-
 if st.session_state.finished:
-
     game = st.session_state.game
     winner = st.session_state.winner
 
-    # Victory sound and confetti effect
-    victory_html = """
-    <script>
-        // Play victory sound
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiM0fPTgjMGHm7A7+OZURE');
-        audio.volume = 0.5;
-        audio.play().catch(() => {});
-    </script>
-    <style>
-        @keyframes confetti-fall {
-            0% { transform: translateY(-100vh) rotate(0deg); }
-            100% { transform: translateY(100vh) rotate(360deg); }
-        }
-    </style>
-    """
-    components.html(victory_html, height=0)
-
     st.divider()
-
     if winner == "⚪ MR WHITE":
         st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>⚪ Νίκησε ο Mr. White!</h2>", unsafe_allow_html=True)
     elif winner == "🟡 INFILTRATORS":
         st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟡 Νίκησαν οι Undercovers!</h2>", unsafe_allow_html=True)
     elif winner == "🟢 CIVILIANS":
         st.markdown("<h2 style='text-align: center; font-size: 2.5rem;'>🟢 Νίκησαν οι Πολίτες!</h2>", unsafe_allow_html=True)
-        
     st.divider()
 
     if st.button("🔄 Νέο Παιχνίδι", type="primary", use_container_width=True):
@@ -303,14 +209,10 @@ if st.session_state.finished:
         st.rerun()
 
 # ================= SETUP PHASE =================
-
 elif st.session_state.game is None:
-
     st.subheader("👥 Επιλογή Παικτών")
-
     all_players = load_players()
 
-    # ===== ADD NEW PLAYER =====
     col_input, col_btn = st.columns([3, 1])
     with col_input:
         new_name = st.text_input("Προσθήκη νέου παίκτη", placeholder="Γράψε όνομα...", label_visibility="collapsed")
@@ -328,32 +230,26 @@ elif st.session_state.game is None:
 
     st.divider()
 
-    # ===== AVAILABLE PLAYERS LIST =====
     if all_players:
         st.markdown("**📋 Διαθέσιμοι παίκτες:**")
-        
         for name in all_players:
             col1, col2, col3 = st.columns([4, 1, 1])
-            
             with col1:
-                # Show selected players with green checkmark
                 if name in st.session_state.selected_players:
                     st.markdown(f"✅ **{name}**")
                 else:
                     st.markdown(f"**{name}**")
-            
             with col2:
                 if name not in st.session_state.selected_players:
-                    if st.button("➕", key=f"add_{name}", help=f"Προσθήκη στο παιχνίδι"):
+                    if st.button("➕", key=f"add_{name}"):
                         st.session_state.selected_players.append(name)
                         st.rerun()
                 else:
-                    if st.button("➖", key=f"remove_{name}", help=f"Αφαίρεση από το παιχνίδι"):
+                    if st.button("➖", key=f"remove_{name}"):
                         st.session_state.selected_players.remove(name)
                         st.rerun()
-            
             with col3:
-                if st.button("🗑", key=f"del_{name}", help=f"Διαγραφή οριστικά"):
+                if st.button("🗑", key=f"del_{name}"):
                     all_players = load_players()
                     all_players.remove(name)
                     save_players(all_players)
@@ -365,20 +261,17 @@ elif st.session_state.game is None:
 
     st.divider()
 
-    # ===== SELECTED PLAYERS DISPLAY =====
     if st.session_state.selected_players:
         st.markdown(f"**🎮 Παίκτες στο παιχνίδι ({len(st.session_state.selected_players)}):**")
         st.success(", ".join(st.session_state.selected_players))
-        
         if len(st.session_state.selected_players) < 3:
             st.warning(f"⚠️ Χρειάζονται τουλάχιστον 3 παίκτες (έχεις {len(st.session_state.selected_players)})")
     else:
         st.info("💡 Πάτα ➕ δίπλα από κάθε παίκτη για να τον προσθέσεις στο παιχνίδι")
 
-    # ===== START GAME BUTTON =====
     st.divider()
-    
-    if st.button("▶️ ΕΝΑΡΞΗ ΠΑΙΧΝΙΔΙΟΥ", 
+
+    if st.button("▶️ ΕΝΑΡΞΗ ΠΑΙΧΝΙΔΙΟΥ",
                  disabled=len(st.session_state.selected_players) < 3,
                  type="primary",
                  use_container_width=True):
@@ -391,13 +284,11 @@ elif st.session_state.game is None:
         save_game(st.session_state.game)
         for p in st.session_state.game["players"]:
             st.session_state.revealed[p["name"]] = False
-        st.session_state.selected_players = []  # Clear selection
+        st.session_state.selected_players = []
         st.rerun()
 
 # ================= GAME PHASE =================
-
 else:
-
     game = st.session_state.game
     players = game["players"]
     word = game["word"]
@@ -405,7 +296,6 @@ else:
     st.markdown("<h3 style='text-align: center;'>🎮 ΠΑΙΚΤΕΣ</h3>", unsafe_allow_html=True)
     st.caption("👀 Πάτα την κάρτα σου για να δεις τον ρόλο σου — μόνος/η σου!")
 
-    # Build card data for HTML
     cards_data = []
     for p in players:
         if p["role"] == "mr_white":
@@ -435,39 +325,47 @@ else:
     import json as _json
     cards_json = _json.dumps(cards_data, ensure_ascii=False)
 
+    # Calculate height based on number of players
+    num_players = len(players)
+    cards_per_row = 3
+    num_rows = (num_players + cards_per_row - 1) // cards_per_row
+    card_height = 240
+    gap = 20
+    padding = 60
+    total_height = num_rows * card_height + (num_rows - 1) * gap + padding
+
     cards_html = f"""
     <style>
       body {{ margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: transparent; }}
       .cards-grid {{
         display: flex;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: {gap}px;
         justify-content: center;
-        padding: 20px 0;
+        padding: 10px 0;
+        overflow: visible;
       }}
       .card-wrap {{
         width: 160px;
-        height: 220px;
+        height: {card_height}px;
         perspective: 1000px;
         cursor: pointer;
-        transition: transform 0.2s ease;
-      }}
-      .card-wrap:hover {{
-        transform: scale(1.05);
+        overflow: visible;
       }}
       .card-inner {{
         position: relative;
         width: 100%;
         height: 100%;
         transform-style: preserve-3d;
-        transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
-        border-radius: 16px;
+        transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
       }}
       .card-wrap.flipped .card-inner {{
-        transform: rotateY(180deg);
+        transform: rotateX(180deg);
       }}
       .card-front, .card-back {{
         position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
         border-radius: 16px;
@@ -485,112 +383,53 @@ else:
       .card-front {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
-        border: 3px solid rgba(255,255,255,0.2);
-        position: relative;
-        overflow: hidden;
       }}
-      .card-front::before {{
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-        transform: rotate(45deg);
-        animation: shine 3s infinite;
-      }}
-      @keyframes shine {{
-        0% {{ transform: translateX(-100%) translateY(-100%) rotate(45deg); }}
-        100% {{ transform: translateX(100%) translateY(100%) rotate(45deg); }}
+      .card-back {{
+        transform: rotateX(180deg);
+        color: #fff;
       }}
       .card-front .card-icon {{
-        font-size: 48px;
-        margin-bottom: 12px;
-        animation: float 3s ease-in-out infinite;
-        filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
-      }}
-      @keyframes float {{
-        0%, 100% {{ transform: translateY(0px); }}
-        50% {{ transform: translateY(-10px); }}
+        font-size: 40px;
+        margin-bottom: 10px;
       }}
       .card-front .card-name {{
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 800;
         letter-spacing: 1px;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         word-break: break-word;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }}
       .card-front .tap-hint {{
         font-size: 12px;
         color: rgba(255,255,255,0.8);
-        margin-top: 8px;
         line-height: 1.4;
-        animation: pulse-text 2s ease-in-out infinite;
-      }}
-      @keyframes pulse-text {{
-        0%, 100% {{ opacity: 0.8; }}
-        50% {{ opacity: 1; }}
-      }}
-      .card-back {{
-        transform: rotateY(180deg);
-        color: #fff;
-        flex-direction: column;
-        gap: 12px;
-        border: 3px solid rgba(255,255,255,0.3);
       }}
       .card-back .role-label {{
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 800;
         letter-spacing: 2px;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        margin-bottom: 10px;
       }}
       .card-back .word-label {{
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 900;
         background: rgba(255,255,255,0.2);
-        border-radius: 12px;
-        padding: 10px 20px;
-        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 8px 16px;
         border: 2px solid rgba(255,255,255,0.3);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         letter-spacing: 2px;
+        margin-bottom: 8px;
       }}
       .card-back .word-caption {{
         font-size: 11px;
         opacity: 0.85;
         text-transform: uppercase;
         letter-spacing: 1px;
+        margin-bottom: 6px;
       }}
       .card-back .flip-back {{
-        margin-top: 8px;
         font-size: 11px;
         opacity: 0.7;
-        animation: pulse-text 2s ease-in-out infinite;
-      }}
-      .pulse-ring {{
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #fff;
-        animation: pulse-ring 2s infinite;
-        margin-bottom: 6px;
-        box-shadow: 0 0 10px rgba(255,255,255,0.8);
-      }}
-      @keyframes pulse-ring {{
-        0% {{ 
-          box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
-          transform: scale(1);
-        }}
-        50% {{
-          box-shadow: 0 0 0 10px rgba(255,255,255,0);
-          transform: scale(1.1);
-        }}
-        100% {{ 
-          box-shadow: 0 0 0 0 rgba(255,255,255,0);
-          transform: scale(1);
-        }}
       }}
     </style>
 
@@ -600,17 +439,9 @@ else:
       const cards = {cards_json};
       const grid = document.getElementById("cardsGrid");
 
-      // Sound effects
-      function playFlip() {{
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiM0fPTgjMGHm7A7+OZURE');
-        audio.volume = 0.3;
-        audio.play().catch(() => {{}});
-      }}
-
       cards.forEach((c, i) => {{
         const wrap = document.createElement("div");
         wrap.className = "card-wrap";
-        wrap.id = "card-" + i;
 
         const wordHtml = c.back_word
           ? `<div class="word-caption">Η λέξη σου</div>
@@ -620,7 +451,6 @@ else:
         wrap.innerHTML = `
           <div class="card-inner">
             <div class="card-front">
-              <div class="pulse-ring"></div>
               <div class="card-icon">🎭</div>
               <div class="card-name">${{c.name}}</div>
               <div class="tap-hint">👆 Πάτα για να δεις<br>τον ρόλο σου</div>
@@ -635,7 +465,6 @@ else:
 
         wrap.addEventListener("click", () => {{
           wrap.classList.toggle("flipped");
-          playFlip();
         }});
 
         grid.appendChild(wrap);
@@ -643,10 +472,9 @@ else:
     </script>
     """
 
-    components.html(cards_html, height=260 if len(players) <= 3 else 500, scrolling=False)
+    components.html(cards_html, height=total_height, scrolling=False)
 
     # ================= VOTE =================
-
     st.divider()
     st.markdown("<h3 style='text-align: center;'>⚔️ ΦΑΣΗ ΨΗΦΟΦΟΡΙΑΣ</h3>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; opacity: 0.8;'>Συζητήστε και αποφασίστε ποιος φεύγει</p>", unsafe_allow_html=True)
@@ -656,27 +484,16 @@ else:
 
     if st.button("🔥 Remove Player"):
         removed = players[idx]
-        
-        # Elimination sound
-        elimination_sound = """
-        <script>
-            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBjiM0fPTgjMGHm7A7+OZURE');
-            audio.volume = 0.4;
-            audio.play().catch(() => {});
-        </script>
-        """
-        components.html(elimination_sound, height=0)
-        
-        # Show what role was eliminated
+
         role_labels = {
             "mr_white": "⚪ Mr. White",
             "undercover": "🟡 Undercover",
             "πολίτης": "🟢 Πολίτης"
         }
         role_display = role_labels.get(removed["role"], removed["role"])
-        
+
         st.markdown(f"<div style='text-align: center; padding: 1rem; background: rgba(255,107,107,0.2); border-radius: 12px; margin: 1rem 0;'><h3 style='margin: 0;'>💀 {removed['name']} ήταν {role_display}</h3></div>", unsafe_allow_html=True)
-        
+
         players = [p for p in players if p["name"] != removed["name"]]
         game["players"] = players
         st.session_state.revealed.pop(removed["name"], None)
@@ -699,7 +516,6 @@ else:
         st.rerun()
 
     # ================= MR WHITE GUESS =================
-
     if st.session_state.mr_white_guess_mode:
         removed = st.session_state.last_out
         st.markdown(f"""
