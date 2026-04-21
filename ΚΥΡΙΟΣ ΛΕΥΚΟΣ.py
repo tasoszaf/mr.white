@@ -408,7 +408,6 @@ else:
         margin-bottom: 10px;
       }}
       .card-back .word-label {{
-        font-size: clamp(12px, 5vw, 24px);
         font-weight: 900;
         background: rgba(255,255,255,0.2);
         border-radius: 10px;
@@ -416,12 +415,11 @@ else:
         border: 2px solid rgba(255,255,255,0.3);
         letter-spacing: 2px;
         margin-bottom: 8px;
-        width: 100%;
+        width: 128px;
         box-sizing: border-box;
-        overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
-        max-width: 128px;
+        text-align: center;
+        font-size: 22px;
       }}
       .card-back .word-caption {{
         font-size: 11px;
@@ -471,6 +469,15 @@ else:
         }});
 
         grid.appendChild(wrap);
+        const wordEl = wrap.querySelector(".word-label");
+        if (wordEl) {{
+          let size = 22;
+          while (wordEl.scrollWidth > wordEl.clientWidth && size > 8) {{
+            size--;
+            wordEl.style.fontSize = size + "px";
+          }}
+        }}
+        
       }});
     </script>
     """
