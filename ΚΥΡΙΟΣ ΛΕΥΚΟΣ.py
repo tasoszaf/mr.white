@@ -137,7 +137,6 @@ st.title("ΚΥΡΙΟΣ ΛΕΥΚΟΣ")
 if st.session_state.finished:
 
     game = st.session_state.game
-    word = game["word"] if game else ("?", "?")
     winner = st.session_state.winner
 
     st.divider()
@@ -149,28 +148,6 @@ if st.session_state.finished:
     elif winner == "🟢 CIVILIANS":
         st.success("## 🟢 Νίκησαν οι Πολίτες!")
         
-    st.divider()
-    st.subheader("🎭 Ρόλοι παικτών")
-
-    role_labels = {
-        "mr_white":  "⚪ Mr. White",
-        "undercover": "🟡 Undercover",
-        "πολίτης":   "🟢 Πολίτης",
-    }
-
-    all_game_players = game.get("all_players", game["players"])
-
-    for p in all_game_players:
-        role = role_labels.get(p["role"], p["role"])
-        if p["role"] == "undercover":
-            st.write(f"**{p['name']}** — {role} *(λέξη: {word[1]})*")
-        elif p["role"] == "πολίτης":
-            st.write(f"**{p['name']}** — {role} *(λέξη: {word[0]})*")
-        else:
-            st.write(f"**{p['name']}** — {role}")
-
-    st.divider()
-    st.markdown(f"**Λέξη πολιτών:** {word[0]}  |  **Λέξη undercover:** {word[1]}")
     st.divider()
 
     if st.button("🔄 Νέο Παιχνίδι", type="primary", use_container_width=True):
@@ -469,6 +446,17 @@ else:
 
     if st.button("🔥 Remove Player"):
         removed = players[idx]
+        
+        # Show what role was eliminated
+        role_labels = {
+            "mr_white": "⚪ Mr. White",
+            "undercover": "🟡 Undercover",
+            "πολίτης": "🟢 Πολίτης"
+        }
+        role_display = role_labels.get(removed["role"], removed["role"])
+        
+        st.info(f"💀 **{removed['name']}** ήταν {role_display}")
+        
         players = [p for p in players if p["name"] != removed["name"]]
         game["players"] = players
         st.session_state.revealed.pop(removed["name"], None)
