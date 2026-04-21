@@ -86,7 +86,6 @@ st.markdown("""
 GAME_FILE = "game.json"
 
 # ================= AVATAR SEEDS =================
-# 20 διαφορετικά seeds για DiceBear avataaars
 AVATAR_SEEDS = [
     "Felix", "Mia", "Zoe", "Leo", "Nina", "Max", "Aria", "Hugo",
     "Luna", "Oscar", "Cleo", "Finn", "Nora", "Eli", "Vera",
@@ -147,12 +146,9 @@ if "winner" not in st.session_state:
     st.session_state.winner = None
 if "elimination_msg" not in st.session_state:
     st.session_state.elimination_msg = None
-# Setup phase state
 if "selected_avatars" not in st.session_state:
-    # {seed: name} για τους παίκτες που έχουν επιλέξει κάρτα
     st.session_state.selected_avatars = {}
 if "current_picker" not in st.session_state:
-    # ποιο seed επιλέχθηκε τώρα (περιμένει όνομα)
     st.session_state.current_picker = None
 
 # ================= HELPERS =================
@@ -215,8 +211,17 @@ elif st.session_state.game is None:
     taken_seeds = set(selected.keys())
     n_selected = len(selected)
 
+    # ===== CHECK QUERY PARAMS για avatar click =====
+    params = st.query_params
+    if "pick" in params and not st.session_state.current_picker:
+        seed = params["pick"]
+        if seed in AVATAR_SEEDS and seed not in taken_seeds:
+            st.session_state.current_picker = seed
+            st.query_params.clear()
+            st.rerun()
+
     st.markdown("<h3 style='text-align:center;'>👤 Επιλογή Avatar</h3>", unsafe_allow_html=True)
-    st.caption(f"Διαλέξτε το avatar σας και γράψτε το όνομά σας — {n_selected} παίκτες επέλεξαν")
+    st.caption(f"Πάτα ένα avatar για να το επιλέξεις — {n_selected} παίκτες έχουν επιλέξει")
 
     # ===== NAME INPUT αν κάποιος μόλις επέλεξε avatar =====
     if st.session_state.current_picker:
@@ -224,7 +229,7 @@ elif st.session_state.game is None:
         st.markdown(f"""
         <div style='text-align:center; padding:1rem; background:rgba(78,205,196,0.15);
              border-radius:16px; margin-bottom:1rem; border:2px solid rgba(78,205,196,0.4);'>
-            <img src='{avatar_url(seed)}' width='80' style='border-radius:50%;margin-bottom:8px;'/>
+            <img src='{avatar_url(seed)}' width='80' style='border-radius:50%; margin-bottom:8px;'/>
             <p style='margin:0; font-size:1rem; color:#4ecdc4;'>Επέλεξες αυτό το avatar!</p>
         </div>
         """, unsafe_allow_html=True)
@@ -237,7 +242,7 @@ elif st.session_state.game is None:
                 name = name_input.strip() if name_input else ""
                 if not name:
                     st.warning("Γράψε όνομα!")
-                elif name in [v for v in selected.values()]:
+                elif name in list(selected.values()):
                     st.warning("Αυτό το όνομα υπάρχει ήδη!")
                 else:
                     st.session_state.selected_avatars[seed] = name
@@ -267,7 +272,7 @@ elif st.session_state.game is None:
         padding: 10px 0 20px;
       }}
       .avatar-card {{
-        width: 110px;
+        width: 100px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -285,41 +290,35 @@ elif st.session_state.game is None:
         transform: translateY(-3px);
       }}
       .avatar-card.taken {{
-        opacity: 0.5;
+        opacity: 0.45;
         cursor: not-allowed;
+        pointer-events: none;
         border-color: rgba(255,255,255,0.1);
       }}
       .avatar-card img {{
-        width: 72px;
-        height: 72px;
+        width: 68px;
+        height: 68px;
         border-radius: 50%;
-        margin-bottom: 6px;
         background: rgba(255,255,255,0.1);
       }}
       .avatar-name {{
-        font-size: 12px;
+        font-size: 11px;
         color: #4ecdc4;
         font-weight: 700;
         text-align: center;
-        max-width: 100px;
+        margin-top: 5px;
+        max-width: 90px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }}
-      .taken-label {{
-        font-size: 11px;
-        color: rgba(255,255,255,0.5);
-        text-align: center;
-      }}
       .check-badge {{
         position: absolute;
-        top: 6px;
-        right: 6px;
+        top: 6px; right: 6px;
         background: #4ecdc4;
         color: #0f0c29;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        width: 20px; height: 20px;
         font-size: 12px;
         display: flex;
         align-items: center;
@@ -345,15 +344,14 @@ elif st.session_state.game is None:
         card.innerHTML = `
           ${{isTaken ? '<div class="check-badge">✓</div>' : ''}}
           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${{seed}}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf" />
-          ${{isTaken
-            ? `<div class="avatar-name">${{name}}</div><div class="taken-label">επιλεγμένο</div>`
-            : `<div class="avatar-name">${{seed}}</div>`
-          }}
+          ${{isTaken ? `<div class="avatar-name">${{name}}</div>` : ''}}
         `;
 
         if (!isTaken) {{
           card.addEventListener("click", () => {{
-            window.parent.postMessage({{type: "avatar_pick", seed: seed}}, "*");
+            const url = new URL(window.parent.location.href);
+            url.searchParams.set("pick", seed);
+            window.parent.location.href = url.toString();
           }});
         }}
 
@@ -362,29 +360,9 @@ elif st.session_state.game is None:
     </script>
     """
 
-    # Υπολογισμός ύψους grid
     rows = (len(AVATAR_SEEDS) + 4) // 5
-    grid_height = rows * 140 + 60
-
+    grid_height = rows * 130 + 40
     components.html(avatar_grid_html, height=grid_height, scrolling=False)
-
-    # Δεν μπορούμε να πιάσουμε postMessage από Streamlit,
-    # οπότε χρησιμοποιούμε buttons κάτω από το grid για επιλογή
-    st.divider()
-
-    if not st.session_state.current_picker:
-        st.markdown("**Επίλεξε avatar πατώντας το όνομά του:**")
-        cols = st.columns(5)
-        for i, seed in enumerate(AVATAR_SEEDS):
-            with cols[i % 5]:
-                is_taken = seed in taken_seeds
-                label = selected.get(seed, seed)
-                if is_taken:
-                    st.markdown(f"<div style='text-align:center;font-size:11px;color:#4ecdc4;padding:4px;'>✓ {label}</div>", unsafe_allow_html=True)
-                else:
-                    if st.button(seed, key=f"pick_{seed}", use_container_width=True):
-                        st.session_state.current_picker = seed
-                        st.rerun()
 
     st.divider()
 
