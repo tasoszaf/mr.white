@@ -409,10 +409,8 @@ else:
       }}
       .card-back .word-label {{
         font-weight: 900;
-        background: rgba(255,255,255,0.2);
         border-radius: 10px;
         padding: 8px 16px;
-        border: 2px solid rgba(255,255,255,0.3);
         letter-spacing: 2px;
         margin-bottom: 8px;
         width: 128px;
